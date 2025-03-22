@@ -30,7 +30,7 @@ fi
 # Install required packages
 print_status "Installing required packages..."
 brew install --cask docker plex-media-server
-brew install traefik
+brew install traefik docker-clean docker-completion docker-compose
 
 # Create necessary directories
 print_status "Creating directory structure..."
