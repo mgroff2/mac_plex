@@ -1,0 +1,17 @@
+# Ignore system files
+.DS_Store
+__MACOSX/
+
+# Ignore environment files
+.env
+
+# Ignore Traefik certificates
+traefik/certificates/acme.json
+
+# Ignore Docker-related files
+*.log
+docker-compose.override.yml
+
+# Ignore sensitive data
+*.key
+*.pem

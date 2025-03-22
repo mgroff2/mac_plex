@@ -1,0 +1,35 @@
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+  file:
+    filename: "dynamic.yml"
+    watch: true
+
+certificatesResolvers:
+  le:
+    acme:
+      email: "${LETSENCRYPT_EMAIL}"
+      storage: "/private/etc/traefik/certificates/acme.json"
+      tlsChallenge: {}
+
+log:
+  level: DEBUG
+
+accessLog: {}
+
+api:
+  dashboard: true 

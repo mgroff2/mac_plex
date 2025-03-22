@@ -1,0 +1,261 @@
+version: '3'
+
+services:
+  #############
+  # PLEX APPS #
+  #############
+  
+  lidarr:
+    image: 'lscr.io/linuxserver/lidarr:latest'
+    container_name: 'lidarr'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "8686:8686"
+    volumes:
+      - '${DATA_DIR}/lidarr/config:/config'
+      - '${DATA_DIR}/nzbget/downloads:/data/downloads'
+      - '${PLEX_DIR}/Music:/music'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  nzbget:
+    image: 'lscr.io/linuxserver/nzbget:latest'
+    container_name: 'nzbget'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "6789:6789"
+    volumes:
+      - '${DATA_DIR}/nzbget/config:/config'
+      - '${DATA_DIR}/nzbget/downloads:/data/downloads'
+      - '${DATA_DIR}/nzbget/intermediate:/data/intermediate'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  ombi:
+    image: 'lscr.io/linuxserver/ombi:latest'
+    container_name: 'ombi'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "3579:3579"
+    volumes:
+      - '${DATA_DIR}/ombi/config:/config'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  overseerr:
+    image: 'lscr.io/linuxserver/overseerr:latest'
+    container_name: 'overseer'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "5055:5055"
+    volumes:
+      - '${DATA_DIR}/overseerr/config:/config'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  radarr:
+    image: 'lscr.io/linuxserver/radarr:latest'
+    container_name: 'radarr'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "7878:7878"
+    volumes:
+      - '${DATA_DIR}/radarr/config:/config'
+      - '${DATA_DIR}/nzbget/downloads:/data/downloads'
+      - '${PLEX_DIR}/Movies:/movies'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  sonarr:
+    image: 'lscr.io/linuxserver/sonarr:latest'
+    container_name: 'sonarr'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "8989:8989"
+    volumes:
+      - '${DATA_DIR}/sonarr/config:/config'
+      - '${DATA_DIR}/nzbget/downloads:/data/downloads'
+      - '${PLEX_DIR}/TV Shows:/tv'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  tautulli:
+    image: 'lscr.io/linuxserver/tautulli:latest'
+    container_name: 'tautulli'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "8181:8181"
+    volumes:
+      - '${DATA_DIR}/tautulli/config:/config'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  ###########
+  # AI APPS #
+  ###########
+
+  ollama:
+    image: 'ollama/ollama:latest'
+    container_name: 'ollama'
+    restart: unless-stopped
+    environment:
+      TZ: '${TZ}'
+    volumes:
+      - '${DATA_DIR}/ollama/data:/root/.ollama'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  open-webui:
+    image: 'ghcr.io/open-webui/open-webui:latest'
+    container_name: 'open-webui'
+    restart: unless-stopped
+    environment:
+      OLLAMA_BASE_URL: 'http://ollama:11434'
+      WEBUI_SECRET_KEY: '${WEBUI_SECRET_KEY}'
+      TZ: '${TZ}'
+    ports:
+      - "8082:8080"
+    volumes:
+      - '${DATA_DIR}/open-webui/data:/app/backend/data'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  ###################
+  # DASHBOARD APPS #
+  ###################
+
+  heimdall:
+    image: 'lscr.io/linuxserver/heimdall:latest'
+    container_name: 'heimdall'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "8282:80"
+    volumes:
+      - '${DATA_DIR}/heimdall/config:/config'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  organizr:
+    image: 'organizr/organizr:latest'
+    container_name: 'organizr'
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "8888:80"
+    volumes:
+      - '${DATA_DIR}/organizr/config:/config'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  ################
+  # DATABASE APPS #
+  ################
+
+  adminer:
+    image: adminer:latest
+    container_name: 'adminer'
+    restart: unless-stopped
+    environment:
+      TZ: '${TZ}'
+    ports:
+      - "8090:8080"
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  mysql:
+    image: mysql:latest
+    container_name: 'mysql'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_USER: '${MYSQL_USER}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+      TZ: '${TZ}'
+    ports: 
+      - "3306:3306"
+    volumes:
+      - '${DATA_DIR}/mysql/data:/var/lib/mysql'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    platform: linux/amd64
+    container_name: 'phpmyadmin'
+    restart: unless-stopped
+    environment:
+      TZ: '${TZ}'
+    ports:
+      - "8083:80"
+    volumes:
+      - '${DATA_DIR}/phpmyadmin/data/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+networks:
+  traefik-proxy:
+    name: traefik-proxy
+    driver: bridge
