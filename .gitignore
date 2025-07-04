@@ -4,9 +4,10 @@ __MACOSX/
 
 # Ignore environment files
 .env
+!.env.example
 
 # Ignore Traefik certificates
-traefik/certificates/acme.json
+traefik/certificates/
 
 # Ignore Docker-related files
 *.log
@@ -15,3 +16,7 @@ docker-compose.override.yml
 # Ignore sensitive data
 *.key
 *.pem
+
+
+# Ignore traefik yml files
+traefik/*.yml
