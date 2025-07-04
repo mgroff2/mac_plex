@@ -4,7 +4,7 @@ A complete Docker-based Plex media server setup for macOS with Traefik reverse p
 
 ## Features
 
-- **Traefik Reverse Proxy** with automatic SSL certificates via Let's Encrypt
+- **Traefik Reverse Proxy** with automatic SSL certificates via Let's Encrypt (runs natively on macOS for optimal network performance)
 - **Plex Media Server** with supporting applications:
   - Sonarr (TV Shows)
   - Radarr (Movies)
@@ -29,6 +29,28 @@ A complete Docker-based Plex media server setup for macOS with Traefik reverse p
 - **Basic terminal knowledge** (copy/paste commands)
 
 **Note**: Homebrew and Docker Desktop will be installed automatically by the install script.
+
+## Architecture Overview
+
+This setup uses a **hybrid architecture** that's optimized for macOS:
+
+### 🖥️ **Native macOS Components**
+- **Traefik** - Runs as a native macOS LaunchAgent (not in Docker)
+- **Plex Media Server** - Optional native installation for better performance
+
+### 🐳 **Docker Components**
+- **All other services** - Run in Docker containers for easy management
+
+### 🤔 **Why Traefik Runs Natively?**
+
+**Performance & Networking**: macOS Docker networking has limitations that affect reverse proxy performance and IP whitelisting middleware. Running Traefik natively provides:
+
+- **Direct network access** - No Docker network translation overhead
+- **Better SSL performance** - Native SSL termination without container networking layers
+- **Reliable IP whitelisting** - Middleware can see real client IPs without Docker network masking
+- **Port binding efficiency** - Direct access to ports 80/443 without Docker proxy
+
+**Alternative approaches** (like HAProxy in Docker) would require additional complexity and still face similar networking limitations on macOS.
 
 ## Quick Start (TL;DR)
 
