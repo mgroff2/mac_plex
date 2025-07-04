@@ -1,0 +1,330 @@
+http:
+  routers:
+    traefik-dashboard:
+      rule: "Host(`traefik.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: api@internal
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    adminer:
+      rule: "Host(`adminer.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: adminer-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    ai:
+      rule: "Host(`ai.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: ai-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    bazarr:
+      rule: "Host(`bazarr.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: bazarr-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    grafana:
+      rule: "Host(`grafana.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: grafana-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    heimdall:
+      rule: "Host(`heimdall.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: heimdall-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+        - heimdall-headers
+
+    it-tools:
+      rule: "Host(`it-tools.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: it-tools-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    lidarr:
+      rule: "Host(`lidarr.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: lidarr-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    nzbget:
+      rule: "Host(`nzbget.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: nzbget-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    ombi:
+      rule: "Host(`ombi.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: ombi-service
+      tls:
+        certResolver: le
+
+    organizr:
+      rule: "Host(`organizr.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: organizr-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    overseerr:
+      rule: "Host(`overseerr.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: overseerr-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    phpmyadmin:
+      rule: "Host(`phpmy.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: phpmyadmin-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    portainer:
+      rule: "Host(`portainer.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: portainer-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    prometheus:
+      rule: "Host(`prometheus.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: prometheus-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    prowlarr:
+      rule: "Host(`prowlarr.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: prowlarr-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    radarr:
+      rule: "Host(`radarr.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: radarr-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    sonarr:
+      rule: "Host(`sonarr.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: sonarr-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    tautulli:
+      rule: "Host(`tautulli.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: tautulli-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
+
+    uptime-kuma:
+      rule: "Host(`uptime.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: uptime-kuma-service
+      tls:
+        certResolver: le
+
+  services:
+    adminer-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8090"
+
+    ai-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8082"
+
+    bazarr-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:6767"
+
+    grafana-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:3000"
+
+    heimdall-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8282"
+
+    it-tools-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8084"
+
+    lidarr-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8686"
+
+    nzbget-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:6789"
+
+    ombi-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:3579"
+
+    organizr-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8888"
+
+    overseerr-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:5055"
+
+    phpmyadmin-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8083"
+
+    portainer-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:9000"
+
+    portainer-agent-service:
+    prowlarr-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:9696"
+
+    prometheus-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:9090"
+
+    radarr-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:7878"
+
+    sonarr-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8989"
+
+    tautulli-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8181"
+
+    uptime-kuma-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:3001"
+
+  middlewares:
+    all-ipwhitelist:
+      ipAllowList:
+        sourceRange:
+${IP_ALLOW_LIST}
+    heimdall-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Forwarded-Host: "heimdall.${DOMAIN}"
+        customResponseHeaders:
+          Content-Security-Policy: "upgrade-insecure-requests"
+          
+tcp:
+  routers:
+    mysql-router:
+      entryPoints:
+        - mysql
+      rule: "HostSNI(`*`)"
+      service: mysql-service
+      middlewares:
+        - mysql-whitelist
+
+  services:
+    mysql-service:
+      loadBalancer:
+        servers:
+          - address: "mysql:3306"
+
+  middlewares:
+    mysql-whitelist:
+      ipAllowList:
+        sourceRange:
+${IP_ALLOW_LIST}

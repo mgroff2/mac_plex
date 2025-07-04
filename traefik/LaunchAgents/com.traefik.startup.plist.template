@@ -8,7 +8,7 @@
     <array>
         <string>/bin/sh</string>
         <string>-c</string>
-        <string>source /private/etc/traefik/.env && exec /usr/local/bin/traefik</string>
+        <string>source ${PROJECT_DIR}/docker/.env && export IP_ALLOW_LIST && ${PROJECT_DIR}/scripts/apply-config.sh $DOMAIN $LETSENCRYPT_EMAIL && exec /opt/homebrew/bin/traefik</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -19,6 +19,6 @@
     <key>StandardErrorPath</key>
     <string>/tmp/traefik.error.log</string>
     <key>WorkingDirectory</key>
-    <string>/private/etc/traefik</string>
+    <string>${PROJECT_DIR}/traefik</string>
 </dict>
 </plist> 
