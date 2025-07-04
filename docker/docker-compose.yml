@@ -217,6 +217,11 @@ services:
       - traefik-proxy
     labels:
       - com.centurylinklabs.watchtower.enable=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   organizr:
     image: 'organizr/organizr:latest'
@@ -270,6 +275,11 @@ services:
       - traefik-proxy
     labels:
       - com.centurylinklabs.watchtower.enable=false
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
@@ -309,6 +319,11 @@ services:
       - traefik-proxy
     labels:
       - com.centurylinklabs.watchtower.enable=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   portainer-agent:
     image: portainer/agent:latest
