@@ -27,8 +27,8 @@ index 530964c..1c5630b 100644
  #######################
  
  # Base directories
--DATA_DIR=/Volumes/Plex/docker/data
--PLEX_DIR=/Volumes/Plex/
+-DATA_DIR=/path/to/your/docker/data
+-PLEX_DIR=/path/to/your/plex/media
 +DATA_DIR=/path/to/your/docker/data
 +PLEX_DIR=/path/to/your/plex/media
  
@@ -37,8 +37,8 @@ index 530964c..1c5630b 100644
  ######################
  
  # System user/group IDs (run 'id' command to get these)
--PUID=501
--PGID=20
+-PUID=1000
+-PGID=1000
 +PUID=1000
 +PGID=1000
  
@@ -82,7 +82,7 @@ index 530964c..1c5630b 100644
  # TIMEZONE SETTINGS #
  ######################
  
--TZ=America/Chicago 
+-TZ=America/New_York 
 \ No newline at end of file
 +TZ=America/New_York
 diff --git a/docker/docker-compose.yml b/docker/docker-compose.yml
@@ -624,9 +624,9 @@ index d8b3aeb..32d2dff 100644
 +```
  
 -2. Configure your media directories in Plex:
--   - Movies: `/Volumes/Plex/Movies`
--   - TV Shows: `/Volumes/Plex/TV Shows`
--   - Music: `/Volumes/Plex/Music`
+-   - Movies: `/path/to/your/movies`
+-   - TV Shows: `/path/to/your/tv-shows`
+-   - Music: `/path/to/your/music`
 +### Step 8: Access Your Services
 +Your services should now be available at:
 +- **Traefik Dashboard**: `https://traefik.yourdomain.com`
