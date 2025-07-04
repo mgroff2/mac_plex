@@ -50,7 +50,7 @@ This setup uses a **hybrid architecture** that's optimized for macOS:
 - **Reliable IP whitelisting** - Middleware can see real client IPs without Docker network masking
 - **Port binding efficiency** - Direct access to ports 80/443 without Docker proxy
 
-**Alternative approaches** (like HAProxy in Docker) would require additional complexity and still face similar networking limitations on macOS.
+**Alternative approaches** (like HAProxy on Mac and Traefik in Docker) would require additional complexity and still face similar networking limitations on macOS. But you could then use labels if you so wish. 
 
 ## Quick Start (TL;DR)
 
