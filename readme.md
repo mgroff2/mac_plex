@@ -52,13 +52,99 @@ This setup uses a **hybrid architecture** that's optimized for macOS:
 
 **Alternative approaches** (like HAProxy on Mac and Traefik in Docker) would require additional complexity and still face similar networking limitations on macOS. But you could then use labels if you so wish. 
 
+## System Architecture Diagrams
+
+### 🖥️ Mac-Docker Applications Stack
+
+![Mac-Docker Apps](img/Mac_Plex.png)
+
+This setup includes 20+ integrated applications running in a hybrid macOS/Docker environment:
+
+**🖥️ Native macOS:**
+- **Apple macOS** - Host operating system
+- **Traefik** - Reverse proxy and SSL termination (native for optimal performance)
+- **Plex Media Server** - Core media streaming (can run native or Docker)
+- **Backblaze** - Cloud backup solution
+
+**🐳 Docker Containerized Services:**
+
+**Media Management:**
+- **Sonarr** - TV show automation and management
+- **Radarr** - Movie automation and management  
+- **Lidarr** - Music collection management
+- **Bazarr** - Subtitle management
+- **Prowlarr** - Indexer management and integration
+
+**Download & Processing:**
+- **NZBGet** - Usenet downloader
+- **Ombi** - Primary request management platform
+- **Overseerr** - Modern request management interface (still in beta, I use ombi primarily, but have this in the works)
+
+**AI & Automation:**
+- **Ollama** - Local AI language model hosting
+- **OpenWeb UI** - Web interface for AI interactions
+- **Watchtower** - Automatic container updates
+
+**Dashboards & Management:**
+- **Heimdall** - Primary application dashboard
+- **Organizr** - Alternative dashboard solution
+- **Portainer** - Docker container management
+- **IT-Tools** - Collection of useful web utilities
+
+**Database & Analytics:**
+- **MySQL** - Primary database server
+- **phpMyAdmin** - Web-based database administration
+- **Adminer** - Lightweight database management
+- **Tautulli** - Plex usage analytics and monitoring
+
+**System Monitoring:**
+- **Uptime Kuma** - Internal service monitoring
+
+### 🔄 Plex Request Engine Flow
+
+![Plex Request Engine](img/Plex_Request_Engine.png)
+
+#### 🔄 How the Plex Request Engine Works:
+
+**📺 Streaming Flow:**
+- Users log into Plex to stream shared media from the server
+
+**📝 Request & Approval Flow:**
+1. **Request Submission**: Users log into Ombi to request new media (TV shows/movies)
+2. **Admin Review**: Ombi sends request to admin for approval/denial via push notifications
+3. **Status Notifications**: Request status sent via Discord and Mobile Push to keep users informed
+4. **Processing Branch**: Approved requests automatically sent to Sonarr (TV) and Radarr (Movies)
+   - Denied requests stop at Ombi
+
+**⬇️ Download & Processing Flow:**
+
+5. **NZB Discovery**: Sonarr and Radarr find media NZB files from configured providers
+6. **Download Management**: NZB files sent to NZBGet for downloading from Usenet
+7. **File Processing**: After download completion, Sonarr/Radarr scan NZBGet download directory
+8. **Media Organization**: Files are renamed and moved to Plex media directory with proper folder structure
+9. **Library Updates**: Plex scans new media at regular intervals and adds to server library
+
+**📱 Completion & Notifications:**
+
+10. **Availability Detection**: Ombi scans Plex library and detects when requested media is available
+11. **User Notifications**: Completion notifications sent to Discord channels and user mobile apps
+12. **Ready to Stream**: Users can now access their requested content via Plex
+
+**📊 System Monitoring:**
+- **Uptime Kuma**: Internal service monitoring for all Docker containers with Discord notifications
+- **Uptime Robot**: External monitoring for Ombi accessibility with Discord and Email alerts
+
+**💾 Storage Infrastructure:**
+- **Orico External HDD Enclosures** (Thunderbolt 4 / USB 4): High-capacity storage for media library
+- **Dual drive setup**: Redundancy and performance optimization for large media collections
+
 ## Quick Start (TL;DR)
 
 For experienced users who want the quick version:
 
 ```bash
 # 1. Clone and install
-git clone <repository-url>
+git clone https://github.com/mgroff2/mac_plex.git
 cd mac_plex
 chmod +x scripts/install.sh && ./scripts/install.sh
 
@@ -303,7 +389,7 @@ Once everything is running, you can access your services at:
 
 - **View service logs:**
   ```bash
-  cd docker && docker-compose logs -f [service-name]
+  docker logs -f [service-name]
   ```
 
 ## Configuration
