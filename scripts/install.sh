@@ -36,8 +36,17 @@ fi
 
 # Install required packages
 print_status "Installing required packages..."
-brew install --cask docker plex-media-server
-brew install traefik docker-clean docker-completion docker-compose
+if ! brew install --cask plex-media-server docker-desktop; then
+    print_error "Failed to install Plex Media Server or Docker Desktop"
+    exit 1
+fi
+
+if ! brew install traefik; then
+    print_error "Failed to install Traefik"
+    exit 1
+fi
+
+print_success "All packages installed successfully"
 
 # Create necessary directories
 print_status "Creating directory structure..."

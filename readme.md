@@ -143,21 +143,22 @@ This setup includes 20+ integrated applications running in a hybrid macOS/Docker
 For experienced users who want the quick version:
 
 ```bash
-# 1. Clone and install
+# 1. Clone and configure
 git clone https://github.com/mgroff2/mac_plex.git
 cd mac_plex
-chmod +x scripts/install.sh && ./scripts/install.sh
-
-# 2. Configure
 cp docker/.env.example docker/.env
 nano docker/.env  # Edit DOMAIN, EMAIL, PATHS, IPs
-source docker/.env
 
-# 3. Start
+# 2. Install prerequisites
+chmod +x scripts/install.sh && ./scripts/install.sh
+
+# 3. Source environment and start
+source docker/.env
 launchctl load ~/Library/LaunchAgents/com.traefik.startup.plist
 cd docker && docker-compose up -d
 
-# 4. Access
+# 4. Validate and access
+./scripts/validate.sh
 open https://heimdall.yourdomain.com
 ```
 
@@ -175,23 +176,8 @@ git clone <repository-url>
 cd mac_plex
 ```
 
-### Step 2: Run the Installation Script
-This script will install all prerequisites (Homebrew, Docker, Traefik, etc.) and set up the basic structure:
-
-```bash
-chmod +x scripts/install.sh
-./scripts/install.sh
-```
-
-The script will:
-- Install Homebrew (if not already installed)
-- Install Docker Desktop, Plex Media Server, and Traefik
-- Create necessary directories and certificates
-- Set up the Traefik LaunchAgent for automatic startup
-- Backup any existing configuration files
-
-### Step 3: Configure Your Environment
-Now you need to create and customize your environment configuration:
+### Step 2: Configure Your Environment
+First, create and customize your environment configuration:
 
 ```bash
 # Copy the template to create your actual configuration
@@ -248,6 +234,21 @@ MYSQL_PASSWORD=your_database_password
 TZ=America/New_York
 ```
 
+### Step 3: Run the Installation Script
+Now that your environment is configured, run the installation script to set up all prerequisites:
+
+```bash
+chmod +x scripts/install.sh
+./scripts/install.sh
+```
+
+The script will:
+- Install Homebrew (if not already installed)
+- Install Docker Desktop, Plex Media Server, and Traefik
+- Create necessary directories and certificates
+- Set up the Traefik LaunchAgent for automatic startup
+- Backup any existing configuration files
+
 ### Step 4: Source Your Environment (Important!)
 After saving your `.env` file, source it so the variables are available:
 
@@ -286,7 +287,21 @@ docker-compose ps
 tail -f /tmp/traefik.log
 ```
 
-### Step 8: Access Your Services
+### Step 8: Validate Your Installation
+Run the validation script to check if everything is working correctly:
+
+```bash
+./scripts/validate.sh
+```
+
+This script will check:
+- Environment configuration
+- Required directories and files
+- Service status and connectivity
+- SSL certificate generation
+- Network accessibility
+
+### Step 9: Access Your Services
 Your services should now be available at:
 - **Traefik Dashboard**: `https://traefik.yourdomain.com`
 - **Heimdall Dashboard**: `https://heimdall.yourdomain.com` (recommended starting point)
@@ -346,6 +361,8 @@ Your Mac Plex Server includes these applications:
 - **Traefik** - Reverse proxy with automatic SSL certificates
 - **IP Whitelisting** - Restrict access to your specified networks
 - **Let's Encrypt** - Free SSL certificates for all services
+
+> 🔒 **Security Notice**: This setup includes comprehensive security measures. Read our [Security Guide](SECURITY.md) for detailed security configuration, best practices, and incident response procedures.
 
 ## Usage
 
@@ -489,6 +506,13 @@ This will backup:
 
 ## Troubleshooting
 
+### Quick Diagnosis
+**Always start with the validation script** - it checks most common issues automatically:
+
+```bash
+./scripts/validate.sh
+```
+
 ### Common Issues and Solutions
 
 #### 🚨 **"Permission Denied" Error**
@@ -629,31 +653,61 @@ If you're still having issues:
 
 ```
 mac_plex/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.md     # Bug report template
+│   │   └── feature_request.md # Feature request template
+│   └── PULL_REQUEST_TEMPLATE.md # Pull request template
 ├── docker/
 │   ├── .env.example          # Environment configuration template
 │   └── docker-compose.yml    # Docker services configuration
+├── img/
+│   ├── Mac_Plex.png          # Architecture diagram
+│   ├── Plex_Request_Engine.png # Request flow diagram
+│   └── Plex_Request_Engine_w_info.png # Detailed request flow
 ├── scripts/
 │   ├── install.sh           # Installation script
 │   ├── apply-config.sh      # Configuration template processor
-│   └── backup.sh            # Backup script
+│   ├── backup.sh            # Backup script
+│   └── validate.sh          # Installation validation script
 ├── traefik/
 │   ├── traefik.yml.template # Traefik main configuration template
 │   ├── dynamic.yml.template # Traefik dynamic configuration template
-│   └── certificates/        # SSL certificates directory
-└── README.md               # This file
+│   ├── certificates/        # SSL certificates directory
+│   └── LaunchAgents/        # macOS LaunchAgent templates
+├── CHANGELOG.md            # Version history and release notes
+├── CONTRIBUTING.md          # Contributing guidelines
+├── LICENSE                  # MIT License
+├── README.md               # This file
+└── SECURITY.md             # Security guide and best practices
 ```
 
 ## Contributing
 
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- How to report bugs and suggest features
+- Development setup and guidelines
+- Code style and testing requirements
+- Pull request process
+
+**Quick Start for Contributors:**
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes and test thoroughly
+4. Submit a pull request with a clear description
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for complete details.
+
+## Versioning
+
+This project uses [Semantic Versioning](https://semver.org/) for release management. For the complete list of changes, see the [CHANGELOG.md](CHANGELOG.md) file.
+
+**Current Version**: 1.0.0 (Initial Release)
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
