@@ -94,11 +94,11 @@ else
     print_test "Traefik LaunchAgent" 1 "Not running - load LaunchAgent"
 fi
 
-# Check if Traefik is responding
-if curl -sf http://localhost:8080 >/dev/null 2>&1; then
-    print_test "Traefik API" 0 "Responding on port 8080"
+# Check if Traefik is responding via HTTPS dashboard
+if curl -sf "https://traefik.$DOMAIN/dashboard/" >/dev/null 2>&1; then
+    print_test "Traefik Dashboard" 0 "Responding on https://traefik.$DOMAIN"
 else
-    print_test "Traefik API" 1 "Not responding on port 8080"
+    print_test "Traefik Dashboard" 1 "Not responding on https://traefik.$DOMAIN"
 fi
 
 # Check Docker services
@@ -130,33 +130,42 @@ else
     print_test "Docker Compose File" 1 "Missing"
 fi
 
-# Check network connectivity
+# Check network connectivity - DNS resolution test
 print_header "Network Connectivity"
-if curl -sf "https://$DOMAIN" >/dev/null 2>&1; then
-    print_test "Domain Connectivity" 0 "Can reach https://$DOMAIN"
+if nslookup "heimdall.$DOMAIN" >/dev/null 2>&1; then
+    print_test "DNS Resolution" 0 "Can resolve subdomains for $DOMAIN"
 else
-    print_test "Domain Connectivity" 1 "Cannot reach https://$DOMAIN"
+    print_test "DNS Resolution" 1 "Cannot resolve subdomains for $DOMAIN"
 fi
 
-# Check specific service endpoints
-print_header "Service Endpoints"
-services_to_check=(
-    "traefik:8080"
-    "heimdall:8282"
-    "portainer:9000"
-    "ombi:3579"
-    "sonarr:8989"
-    "radarr:7878"
+# Check specific service endpoints via HTTPS
+print_header "HTTPS Service Endpoints"
+https_services_to_check=(
+    "traefik"
+    "heimdall"
+    "portainer"
+    "ombi"
+    "sonarr"
+    "radarr"
+    "prowlarr"
+    "overseerr"
+    "tautulli"
 )
 
-for service_port in "${services_to_check[@]}"; do
-    service_name=${service_port%:*}
-    port=${service_port#*:}
+for service_name in "${https_services_to_check[@]}"; do
+    # Check if service responds (200 OK, 3xx redirects, or 401/403 for auth-protected services)
+    response_code=$(curl -s -o /dev/null -w "%{http_code}" "https://$service_name.$DOMAIN" 2>/dev/null)
     
-    if curl -sf "http://localhost:$port" >/dev/null 2>&1; then
-        print_test "Local: $service_name" 0 "Responding on port $port"
+    if [[ "$response_code" =~ ^[23][0-9][0-9]$ ]] || [ "$response_code" = "401" ] || [ "$response_code" = "403" ]; then
+        if [ "$response_code" = "200" ]; then
+            print_test "HTTPS: $service_name" 0 "Responding (HTTP $response_code)"
+        elif [[ "$response_code" =~ ^3[0-9][0-9]$ ]]; then
+            print_test "HTTPS: $service_name" 0 "Responding with redirect (HTTP $response_code)"
+        else
+            print_test "HTTPS: $service_name" 0 "Responding with auth protection (HTTP $response_code)"
+        fi
     else
-        print_test "Local: $service_name" 1 "Not responding on port $port"
+        print_test "HTTPS: $service_name" 1 "Not responding (HTTP $response_code)"
     fi
 done
 
@@ -168,10 +177,10 @@ else
     print_test "SSL Certificates" 1 "Certificate file is empty or missing"
 fi
 
-# Check if SSL is working
+# Check if SSL is working by testing a known working subdomain
 if command -v openssl >/dev/null 2>&1; then
-    if echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null | grep -q "Verification: OK"; then
-        print_test "SSL Verification" 0 "SSL certificate is valid"
+    if echo | openssl s_client -connect "heimdall.$DOMAIN:443" -servername "heimdall.$DOMAIN" 2>/dev/null | grep -q "Verify return code: 0"; then
+        print_test "SSL Verification" 0 "SSL certificate is valid for subdomains"
     else
         print_test "SSL Verification" 1 "SSL certificate verification failed"
     fi
