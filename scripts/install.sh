@@ -93,9 +93,35 @@ fi
 chmod +x "$PROJECT_DIR/scripts/apply-config.sh"
 chmod +x "$PROJECT_DIR/scripts/backup.sh"
 
+# Setup Docker cleanup cron jobs
+print_status "Setting up Docker cleanup cron jobs..."
+
+# Check if cron jobs already exist to avoid duplicates
+existing_cron=$(crontab -l 2>/dev/null | grep "docker system prune\|docker volume prune")
+
+if [ -z "$existing_cron" ]; then
+    # Get current crontab and add new jobs
+    (crontab -l 2>/dev/null; echo "# Docker cleanup jobs - added by Mac Plex installer") | crontab -
+    (crontab -l 2>/dev/null; echo "# Run every day at 3:00 AM - Docker system prune") | crontab -
+    (crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/docker system prune -af > /tmp/docker-prune.log 2>&1") | crontab -
+    (crontab -l 2>/dev/null; echo "# Run every day at 3:05 AM - Docker volume prune") | crontab -
+    (crontab -l 2>/dev/null; echo "5 3 * * * /usr/local/bin/docker volume prune -f >> /tmp/docker-prune.log 2>&1") | crontab -
+    (crontab -l 2>/dev/null; echo "") | crontab -  # Add blank line for readability
+    
+    print_success "Docker cleanup cron jobs added successfully"
+    print_status "Scheduled: Daily at 3:00 AM (system prune) and 3:05 AM (volume prune)"
+else
+    print_success "Docker cleanup cron jobs already exist, skipping"
+fi
+
 print_success "Installation complete!"
 print_status "Next steps:"
 print_status "1. Copy $PROJECT_DIR/docker/.env.example to $PROJECT_DIR/docker/.env (if not already done)"
 print_status "2. Edit $PROJECT_DIR/docker/.env with your domain and email (if not already done)"
 print_status "3. If Traefik is running, restart it: launchctl unload ~/Library/LaunchAgents/com.traefik.startup.plist && launchctl load ~/Library/LaunchAgents/com.traefik.startup.plist"
-print_status "4. Start Docker containers: cd $PROJECT_DIR/docker && docker-compose up -d" 
+print_status "4. Start Docker containers: cd $PROJECT_DIR/docker && docker-compose up -d"
+print_status ""
+print_status "Automated cleanup:"
+print_status "• Docker system cleanup: Daily at 3:00 AM"
+print_status "• Docker volume cleanup: Daily at 3:05 AM"
+print_status "• Cleanup logs: /tmp/docker-prune.log" 
