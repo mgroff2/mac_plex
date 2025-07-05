@@ -347,21 +347,30 @@ services:
     labels:
       - com.centurylinklabs.watchtower.enable=true
 
-  # bookstack:
-  #   image: linuxserver/bookstack:latest
-  #   container_name: 'bookstack'
-  #   restart: unless-stopped
-  #   environment:
-  #     TZ: '${TZ}'
-  #   ports:
-  #     - "8085:80"
-  #   volumes:
-  #     - '${DATA_DIR}/bookstack/config:/config'
-  #   networks:
-  #     - traefik-proxy
-  #   labels:
-  #     - com.centurylinklabs.watchtower.enable=true
-  
+  bookstack:
+    image: linuxserver/bookstack:latest
+    container_name: 'bookstack'
+    restart: unless-stopped
+    environment:
+      TZ: '${TZ}'
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      DB_HOST: '${BOOKSTACK_DB_HOST}'
+      DB_DATABASE: '${BOOKSTACK_DB_DATABASE}'
+      DB_USERNAME: '${BOOKSTACK_DB_USERNAME}'
+      DB_PASSWORD: '${BOOKSTACK_DB_PASSWORD}'
+      DB_PORT: '${BOOKSTACK_DB_PORT}'
+      APP_URL: 'https://bookstack.${DOMAIN}'
+      APP_KEY: '${BOOKSTACK_APP_KEY}'
+    ports:
+      - "8085:80"
+    volumes:
+      - '${DATA_DIR}/bookstack/config:/config'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
   watchtower:
     image: containrrr/watchtower:latest
     container_name: 'watchtower'  
