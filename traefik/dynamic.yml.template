@@ -39,6 +39,16 @@ http:
         certResolver: le
       middlewares:
         - all-ipwhitelist
+    
+    bookstack:
+      rule: "Host(`bookstack.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: bookstack-service
+      tls:
+        certResolver: le
+      middlewares:
+        - all-ipwhitelist
 
     grafana:
       rule: "Host(`grafana.${DOMAIN}`)"
@@ -196,6 +206,8 @@ http:
       service: uptime-kuma-service
       tls:
         certResolver: le
+      middlewares:
+        - all-ipwhitelist
 
   services:
     adminer-service:
@@ -212,6 +224,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://localhost:6767"
+
+    bookstack-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8085"
 
     grafana-service:
       loadBalancer:
