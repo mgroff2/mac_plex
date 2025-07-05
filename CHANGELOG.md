@@ -1,76 +1,212 @@
 # Changelog
-All notable changes to this project will be documented in this file.
+
+All notable changes to the Mac Plex Server project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2025-01-07
 
-## [1.0.0] - 2024-01-XX
-### Added
-- Initial release of Mac Plex Server setup
-- Docker-based media server stack with 20+ applications
-- Traefik reverse proxy with automatic SSL certificates
-- Hybrid architecture (Traefik native, services in Docker)
-- Template-based configuration system
-- Automated installation script with dependency management
-- Comprehensive backup system
-- IP whitelisting middleware for security
-- macOS LaunchAgent integration for Traefik
-- Architecture diagrams and request flow documentation
-- Complete troubleshooting guide with common solutions
+### 🎉 Initial Release
 
-### Applications Included
-- **Media Management**: Plex, Sonarr, Radarr, Lidarr, Bazarr
-- **Download Management**: Prowlarr, NZBGet, Overseerr, Ombi
-- **Monitoring**: Tautulli, Grafana, Prometheus, Uptime Kuma
-- **AI Tools**: Ollama, Open WebUI
-- **Dashboards**: Heimdall, Organizr
-- **Database**: MySQL, phpMyAdmin, Adminer
-- **Utilities**: Portainer, IT-Tools, Watchtower
+Complete Mac Plex Server setup with automated installation, configuration, and management tools.
 
-### Security Features
-- Automatic SSL certificate generation and renewal
-- IP-based access control with configurable ranges
-- Secure password generation and management
-- Network isolation through Docker networks
-- Automatic container updates with Watchtower
+### ✨ Added
 
-### Documentation
-- Comprehensive README with step-by-step installation
-- Architecture overview with detailed explanations
-- Troubleshooting guide with common issues and solutions
-- Security best practices and configuration guide
-- Complete API documentation for all services
+#### 🐳 **Docker Infrastructure**
+- **Complete Docker Compose stack** with 20+ integrated services
+- **Traefik reverse proxy** with automatic HTTPS/SSL certificate management
+- **Network isolation** with dedicated `traefik-proxy` network
+- **Health checks** for critical services (MySQL, Portainer, Heimdall)
 
-### Scripts
-- `install.sh` - Automated installation with dependency management
-- `apply-config.sh` - Template processing for configuration files
-- `backup.sh` - Comprehensive backup system
-- `validate.sh` - Installation validation and health checks
+#### 📺 **Plex Media Services**
+- **Radarr** - Movie collection management
+- **Sonarr** - TV series collection management  
+- **Lidarr** - Music collection management
+- **Bazarr** - Subtitle management
+- **Prowlarr** - Indexer management
+- **NZBGet** - Usenet downloader
+- **Ombi** - Media request management
+- **Overseerr** - Alternative request management
+- **Tautulli** - Plex analytics and monitoring
 
-### Configuration
-- Environment-based configuration with `.env` file
-- Template system for automatic configuration generation
-- Flexible directory structure for media and data storage
-- Customizable IP whitelisting and security settings
+#### 🤖 **AI Integration**
+- **Ollama** - Local LLM server
+- **Open WebUI** - Chat interface for AI models
 
-## [0.9.0] - 2024-01-XX (Pre-release)
-### Added
-- Beta testing phase with core functionality
-- Basic Docker Compose setup
-- Manual configuration process
-- Initial documentation
+#### 📊 **Dashboard & Management**
+- **Heimdall** - Application dashboard
+- **Organizr** - Service organization
+- **Portainer** - Docker container management
+- **Portainer Agent** - Multi-node support
 
-### Changed
-- Transitioned from manual to automated setup
-- Improved security configuration
-- Enhanced documentation structure
+#### 🗄️ **Database Services**
+- **MySQL 8.4.0** - Primary database with optimized configuration
+- **phpMyAdmin** - Database web interface
+- **Adminer** - Lightweight database management
 
-### Fixed
-- SSL certificate generation issues
-- Network connectivity problems
-- Service startup dependencies
+#### 🔧 **Utilities & Monitoring**
+- **Watchtower** - Automatic container updates
+- **Uptime Kuma** - Service monitoring
+- **IT-Tools** - Various utility tools
+- **Grafana** - Metrics visualization
+- **Prometheus** - Metrics collection
+
+#### 🚀 **Installation & Setup**
+- **Automated installer** (`install.sh`) with:
+  - Homebrew package management
+  - Docker Desktop installation
+  - Plex Media Server installation
+  - Traefik binary installation
+  - Directory structure creation
+  - LaunchAgent configuration
+  - **Docker cleanup cron jobs** (daily at 3:00 AM & 3:05 AM)
+- **Environment configuration** with template system
+- **SSL certificate management** with automatic Let's Encrypt integration
+
+#### 🔍 **Validation & Health Checks**
+- **Comprehensive validation script** (`validate.sh`) with:
+  - Environment variable verification
+  - Directory structure validation
+  - Configuration file checks
+  - Tool installation verification
+  - Docker service status monitoring
+  - **HTTPS endpoint testing** with auth-aware checks
+  - **DNS resolution testing**
+  - **SSL certificate validation**
+
+#### ⚙️ **Configuration Management**
+- **Template-based configuration** (`apply-config.sh`) with:
+  - Domain and email substitution
+  - IP allowlist management (YAML format)
+  - Dynamic Traefik configuration
+- **Backup system** (`backup.sh`) for:
+  - Plex configuration
+  - Docker volumes
+  - Traefik configuration
+
+#### 🔒 **Security Features**
+- **HTTPS-only access** via Traefik with automatic HTTP→HTTPS redirects
+- **IP allowlist protection** for sensitive services
+- **Password authentication** on critical services
+- **SSL certificate automation** with Let's Encrypt
+- **Secure file permissions** (acme.json with 600 permissions)
+
+#### 🍎 **macOS Integration**
+- **LaunchAgent configuration** for Traefik auto-startup
+- **Homebrew integration** for package management
+- **Case-insensitive filesystem support**
+- **macOS-optimized MySQL configuration**
+
+### 🔧 **Configuration**
+
+#### Environment Variables
+- `DOMAIN` - Your domain name
+- `LETSENCRYPT_EMAIL` - Email for SSL certificates
+- `DATA_DIR` - Docker data directory path
+- `PLEX_DIR` - Plex media directory path
+- `MYSQL_ROOT_PASSWORD` - Database root password
+- `IP_ALLOW_LIST` - Comma-separated IP ranges for access control
+- `PUID`/`PGID` - User/group IDs for file permissions
+- `TZ` - Timezone configuration
+
+#### Service Ports
+- **Traefik Dashboard**: `https://traefik.yourdomain.com`
+- **Heimdall**: `https://heimdall.yourdomain.com` (Port 8282)
+- **Portainer**: `https://portainer.yourdomain.com` (Port 9000)
+- **Ombi**: `https://ombi.yourdomain.com` (Port 3579)
+- **Radarr**: `https://radarr.yourdomain.com` (Port 7878)
+- **Sonarr**: `https://sonarr.yourdomain.com` (Port 8989)
+- **MySQL**: Port 3306
+- **And 15+ additional services** with HTTPS access
+
+### 🛠️ **Technical Details**
+
+#### Docker Compose Features
+- **Multi-service orchestration** with 23 containers
+- **Volume persistence** for all application data
+- **Network isolation** with bridge networking
+- **Automatic restart policies** (`unless-stopped`)
+- **Resource optimization** with health checks
+- **Watchtower integration** for automatic updates
+
+#### Traefik Configuration
+- **Automatic service discovery** via Docker labels
+- **Let's Encrypt integration** with HTTP-01 challenge
+- **HTTP to HTTPS redirection**
+- **Dashboard with authentication**
+- **IP allowlist middleware**
+- **Dynamic configuration reload**
+
+#### MySQL Optimization
+- **InnoDB buffer pool**: 512M
+- **Connection limits**: 200 max connections
+- **Timeout configuration**: 300s wait/interactive timeout
+- **Case-insensitive table names** for macOS compatibility
+- **Optimized flush settings** for container environments
+
+### 📚 **Documentation**
+
+#### Scripts
+- `scripts/install.sh` - Complete system installation
+- `scripts/validate.sh` - System health validation  
+- `scripts/apply-config.sh` - Configuration management
+- `scripts/backup.sh` - Backup automation
+
+#### Templates
+- `docker/.env.example` - Environment configuration template
+- `traefik/traefik.yml.template` - Traefik main configuration
+- `traefik/dynamic.yml.template` - Dynamic routing configuration
+- `traefik/LaunchAgents/com.traefik.startup.plist.template` - macOS service
+
+#### Configuration Files
+- `docker/docker-compose.yml` - Complete service stack
+- `traefik/certificates/acme.json` - SSL certificate storage
+
+### 🔄 **Automation**
+
+#### Cron Jobs
+- **Daily Docker cleanup** at 3:00 AM (`docker system prune -af`)
+- **Daily volume cleanup** at 3:05 AM (`docker volume prune -f`)
+- **Cleanup logging** to `/tmp/docker-prune.log`
+
+#### Service Management
+- **Automatic container updates** via Watchtower
+- **Health monitoring** with restart policies
+- **SSL certificate renewal** via Let's Encrypt
+- **Traefik auto-startup** via macOS LaunchAgent
+
+### 📋 **Requirements**
+
+#### System Requirements
+- **macOS** with case-insensitive filesystem support
+- **Homebrew** package manager
+- **Docker Desktop** for container orchestration
+- **Internet connection** for SSL certificates and updates
+
+#### Network Requirements
+- **Domain name** with DNS configured
+- **Ports 80/443** forwarded to Mac
+- **Outbound HTTPS** for Let's Encrypt challenges
+
+---
+
+### 🚀 **Getting Started**
+
+1. **Clone the repository**
+2. **Run the installer**: `./scripts/install.sh`
+3. **Configure environment**: Copy and edit `docker/.env.example` to `docker/.env`
+4. **Apply configuration**: `./scripts/apply-config.sh yourdomain.com your@email.com`
+5. **Start services**: `cd docker && docker-compose up -d`
+6. **Validate setup**: `./scripts/validate.sh`
+
+### 🎯 **What's Next**
+
+This v1.0 release provides a complete, production-ready Mac Plex server setup with enterprise-grade features including automatic SSL, service discovery, monitoring, and maintenance automation.
+
+---
+
+*For more information, visit the [GitHub repository](https://github.com/yourusername/mac_plex)*
 
 ---
 
@@ -93,28 +229,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Check compatibility notes for breaking changes
 - Test in development environment first
 - Follow migration guides for major versions
-
----
-
-## Future Roadmap
-
-### Planned Features
-- [ ] Kubernetes deployment option
-- [ ] Enhanced monitoring dashboard
-- [ ] Automated testing suite
-- [ ] Performance optimization guide
-- [ ] Multi-user setup documentation
-- [ ] Additional security hardening options
-- [ ] Cloud backup integration
-- [ ] Mobile app configuration guide
-
-### Under Consideration
-- [ ] Windows/Linux compatibility
-- [ ] Alternative reverse proxy options
-- [ ] Integrated VPN setup
-- [ ] Media transcoding optimization
-- [ ] CDN integration for remote access
-- [ ] Automated media library management
 
 ---
 
