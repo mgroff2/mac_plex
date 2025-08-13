@@ -106,8 +106,7 @@ http:
       entryPoints:
         - websecure
       service: ombi-service
-      tls:
-        certResolver: le
+      tls: {}
 
     organizr:
       rule: "Host(`organizr.${DOMAIN}`)"
@@ -345,3 +344,9 @@ tcp:
       ipAllowList:
         sourceRange:
 ${IP_ALLOW_LIST}
+
+
+tls:
+  certificates:
+    - certFile: certificates/aws/certificate.crt
+      keyFile: certificates/aws/private_key.key

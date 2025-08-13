@@ -22,13 +22,6 @@ providers:
     filename: "dynamic.yml"
     watch: true
 
-certificatesResolvers:
-  le:
-    acme:
-      email: "${LETSENCRYPT_EMAIL}"
-      storage: "certificates/acme.json"
-      tlsChallenge: {}
-
 log:
   level: DEBUG
 
