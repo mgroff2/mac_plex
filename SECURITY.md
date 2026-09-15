@@ -9,7 +9,7 @@ The Mac Plex Server setup includes several security measures by default:
 - **SSL/TLS Encryption**: All external traffic is encrypted using Let's Encrypt certificates
 - **IP Whitelisting**: Access is restricted to specified IP ranges
 - **Network Isolation**: Services run in isolated Docker networks
-- **Automatic Updates**: Watchtower keeps containers updated with security patches
+- **Automatic Updates**: A nightly job (`scripts/update-containers.sh`) keeps running containers on their latest images
 
 ## 🛡️ Built-in Security Features
 
@@ -135,7 +135,7 @@ Configure Discord/email alerts for:
 ## 🛠️ Security Maintenance
 
 ### 1. **Regular Updates**
-- **Watchtower**: Automatically updates containers
+- **Containers**: Updated nightly at 2:30 AM by `scripts/update-containers.sh` (databases in `AUTO_UPDATE_EXCLUDE` are skipped; update those manually)
 - **Traefik**: Update manually when new versions are available
 - **macOS**: Keep system updated with security patches
 - **Docker**: Update Docker Desktop regularly

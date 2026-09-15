@@ -13,10 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **docker-compose.yml** no longer contains machine-specific paths; new optional `ARR_DATA_DIR` and `DB_DATA_DIR` variables (default to `DATA_DIR`), plus `POSTGRES_*` and `N8N_DB_*` settings in `.env.example`
 - **.gitignore** excludes `*.code-workspace` files
+- **Container updates** now run nightly at 2:30 AM via cron (`scripts/update-containers.sh`), updating only services that are already running and skipping `AUTO_UPDATE_EXCLUDE` (default `mysql,postgres`); supports `--dry-run`
 
 ### 🗑️ Removed
 - Manually exported certificate files (`certificates/aws/`), which could not auto-renew and caused an expired certificate
 - Per-router `certResolver` settings in `dynamic.yml.template`
+- **Watchtower** service and `com.centurylinklabs.watchtower.enable` labels (upstream project archived December 2025)
 
 ## [1.0.0] - 2025-01-07
 

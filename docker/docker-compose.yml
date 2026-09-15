@@ -17,8 +17,6 @@ services:
       - '${DATA_DIR}/bazarr/config:/config'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   lidarr:
     image: 'lscr.io/linuxserver/lidarr:latest'
@@ -36,8 +34,6 @@ services:
       - '${PLEX_DIR}/Music:/music'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   nzbget:
     image: 'linuxserver/nzbget:latest'
@@ -55,8 +51,6 @@ services:
       - '${DATA_DIR}/nzbget/intermediate:/data/intermediate'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   ombi:
     image: 'lscr.io/linuxserver/ombi:latest'
@@ -72,8 +66,6 @@ services:
       - '${DATA_DIR}/ombi/config:/config'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   overseerr:
     image: 'lscr.io/linuxserver/overseerr:latest'
@@ -89,8 +81,6 @@ services:
       - '${DATA_DIR}/overseerr/config:/config'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   prowlarr:
     image: 'lscr.io/linuxserver/prowlarr:latest'
@@ -126,8 +116,6 @@ services:
       - '${PLEX_DIR}/Movies:/movies'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   sonarr:
     image: 'lscr.io/linuxserver/sonarr:latest'
@@ -148,8 +136,6 @@ services:
       - '${PLEX_DIR}/TV Shows:/tv'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   tautulli:
     image: 'lscr.io/linuxserver/tautulli:latest'
@@ -165,8 +151,6 @@ services:
       - '${DATA_DIR}/tautulli/config:/config'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   ###########
   # AI APPS #
@@ -182,8 +166,6 @@ services:
   #     - '${DATA_DIR}/ollama/data:/root/.ollama'
   #   networks:
   #     - traefik-proxy
-  #   labels:
-  #     - com.centurylinklabs.watchtower.enable=true
 
   # open-webui:
   #   image: 'ghcr.io/open-webui/open-webui:latest'
@@ -199,8 +181,6 @@ services:
   #     - '${DATA_DIR}/open-webui/data:/app/backend/data'
   #   networks:
   #     - traefik-proxy
-  #   labels:
-  #     - com.centurylinklabs.watchtower.enable=true
 
   ###################
   # DASHBOARD APPS #
@@ -221,8 +201,6 @@ services:
       - '${DATA_DIR}/heimdall/config:/config'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
@@ -243,8 +221,6 @@ services:
   #     - '${DATA_DIR}/organizr/config:/config'
   #   networks:
   #     - traefik-proxy
-  #   labels:
-  #     - com.centurylinklabs.watchtower.enable=true
 
   ################
   # DATABASE APPS #
@@ -264,8 +240,6 @@ services:
       - '${DB_DATA_DIR:-${DATA_DIR}}/postgres/data:/var/lib/postgresql/data'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 30s
@@ -282,8 +256,6 @@ services:
       - "8090:8080"
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   mysql:
     # Version 8.4.0 is the latest version that I was able to get Ombi to work with - 2025-07-04
@@ -301,8 +273,6 @@ services:
       - '${DB_DATA_DIR:-${DATA_DIR}}/mysql/data:/var/lib/mysql'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
     # command: >
     #   --innodb-buffer-pool-size=512M
     #   --innodb-flush-log-at-trx-commit=2
@@ -336,8 +306,6 @@ services:
     #   - '${DATA_DIR}/phpmyadmin/data/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   ###########
   # UTILITIES #
@@ -354,8 +322,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000"]
       interval: 30s
@@ -372,8 +338,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   # bookstack:
   #   image: linuxserver/bookstack:latest
@@ -396,24 +360,6 @@ services:
   #     - '${DATA_DIR}/bookstack/config:/config'
   #   networks:
   #     - traefik-proxy
-  #   labels:
-  #     - com.centurylinklabs.watchtower.enable=true
-
-  watchtower:
-    image: nickfedor/watchtower:latest
-    container_name: 'watchtower'  
-    restart: unless-stopped
-    environment:
-      TZ: '${TZ}'
-      WATCHTOWER_CLEANUP: 'true'
-      WATCHTOWER_POLL_INTERVAL: '3600'
-      WATCHTOWER_gsLABEL_ENABLE: 'true'
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   uptime-kuma:
     image: louislam/uptime-kuma:latest
@@ -425,8 +371,6 @@ services:
       - '${DATA_DIR}/uptime-kuma:/app/data'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
   it-tools:
     image: corentinth/it-tools:latest
@@ -440,8 +384,6 @@ services:
       - '${DATA_DIR}/it-tools/data:/app/data'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
 
 
   n8n:
@@ -454,8 +396,6 @@ services:
       - '${DATA_DIR}/n8n/data:/home/node/.n8n'
     networks:
       - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
     environment:
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: '${N8N_DB_HOST:-}'

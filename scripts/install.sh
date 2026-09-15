@@ -92,6 +92,7 @@ fi
 # Make scripts executable
 chmod +x "$PROJECT_DIR/scripts/apply-config.sh"
 chmod +x "$PROJECT_DIR/scripts/backup.sh"
+chmod +x "$PROJECT_DIR/scripts/update-containers.sh"
 
 # Setup Docker cleanup cron jobs
 print_status "Setting up Docker cleanup cron jobs..."
@@ -114,6 +115,17 @@ else
     print_success "Docker cleanup cron jobs already exist, skipping"
 fi
 
+# Setup nightly container update cron job (replaces Watchtower)
+print_status "Setting up container update cron job..."
+
+if ! crontab -l 2>/dev/null | grep -q "update-containers.sh"; then
+    (crontab -l 2>/dev/null; echo "# Run every day at 2:30 AM - update running containers (before the 3:00 AM prune removes old images)") | crontab -
+    (crontab -l 2>/dev/null; echo "30 2 * * * \"$PROJECT_DIR/scripts/update-containers.sh\" >> /tmp/docker-update.log 2>&1") | crontab -
+    print_success "Container update cron job added successfully"
+else
+    print_success "Container update cron job already exists, skipping"
+fi
+
 print_success "Installation complete!"
 print_status "Next steps:"
 print_status "1. Copy $PROJECT_DIR/docker/.env.example to $PROJECT_DIR/docker/.env (if not already done)"
@@ -121,7 +133,9 @@ print_status "2. Edit $PROJECT_DIR/docker/.env with your domain and email (if no
 print_status "3. If Traefik is running, restart it: launchctl unload ~/Library/LaunchAgents/com.traefik.startup.plist && launchctl load ~/Library/LaunchAgents/com.traefik.startup.plist"
 print_status "4. Start Docker containers: cd $PROJECT_DIR/docker && docker-compose up -d"
 print_status ""
-print_status "Automated cleanup:"
+print_status "Automated maintenance:"
+print_status "• Container updates (running services only): Daily at 2:30 AM"
+print_status "• Update logs: /tmp/docker-update.log"
 print_status "• Docker system cleanup: Daily at 3:00 AM"
 print_status "• Docker volume cleanup: Daily at 3:05 AM"
 print_status "• Cleanup logs: /tmp/docker-prune.log" 

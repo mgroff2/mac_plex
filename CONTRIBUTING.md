@@ -92,7 +92,6 @@ cp docker/.env.example docker/.env.test
 - Include restart policies
 - Add health checks where applicable
 - Use environment variables from `.env`
-- Include Watchtower labels for auto-updates
 
 ### Documentation
 - Use clear, concise language
