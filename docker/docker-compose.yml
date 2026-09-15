@@ -1,3 +1,10 @@
+# Cap container logs so they can't grow without bound (applied to every service)
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   #############
   # PLEX APPS #
@@ -6,6 +13,7 @@ services:
   bazarr:
     image: 'lscr.io/linuxserver/bazarr:latest'
     container_name: 'bazarr'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -21,6 +29,7 @@ services:
   lidarr:
     image: 'lscr.io/linuxserver/lidarr:latest'
     container_name: 'lidarr'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -38,6 +47,7 @@ services:
   nzbget:
     image: 'linuxserver/nzbget:latest'
     container_name: 'nzbget'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -55,6 +65,7 @@ services:
   ombi:
     image: 'lscr.io/linuxserver/ombi:latest'
     container_name: 'ombi'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -70,6 +81,7 @@ services:
   overseerr:
     image: 'lscr.io/linuxserver/overseerr:latest'
     container_name: 'overseer'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -85,6 +97,7 @@ services:
   prowlarr:
     image: 'lscr.io/linuxserver/prowlarr:latest'
     container_name: 'prowlarr'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -100,6 +113,7 @@ services:
   radarr:
     image: 'lscr.io/linuxserver/radarr:latest'
     container_name: 'radarr'
+    logging: *default-logging
     restart: unless-stopped
     depends_on:
       postgres:
@@ -120,6 +134,7 @@ services:
   sonarr:
     image: 'lscr.io/linuxserver/sonarr:latest'
     container_name: 'sonarr'
+    logging: *default-logging
     restart: unless-stopped
     depends_on:
       postgres:
@@ -140,6 +155,7 @@ services:
   tautulli:
     image: 'lscr.io/linuxserver/tautulli:latest'
     container_name: 'tautulli'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -189,6 +205,7 @@ services:
   heimdall:
     image: 'lscr.io/linuxserver/heimdall:latest'
     container_name: 'heimdall'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       PGID: '${PGID}'
@@ -229,6 +246,7 @@ services:
   postgres:
     image: postgres:16
     container_name: 'postgres'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       POSTGRES_USER: '${POSTGRES_USER}'
@@ -249,6 +267,7 @@ services:
   adminer:
     image: adminer:latest
     container_name: 'adminer'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       TZ: '${TZ}'
@@ -261,6 +280,7 @@ services:
     # Version 8.4.0 is the latest version that I was able to get Ombi to work with - 2025-07-04
     image: mysql:8.4.0
     container_name: 'mysql'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
@@ -295,6 +315,7 @@ services:
     image: phpmyadmin/phpmyadmin:latest
     platform: linux/amd64
     container_name: 'phpmyadmin'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       TZ: '${TZ}'
@@ -317,6 +338,7 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     container_name: 'portainer'
+    logging: *default-logging
     restart: unless-stopped
     ports:
       - "9000:9000"
@@ -334,6 +356,7 @@ services:
   portainer-agent:
     image: portainer/agent:latest
     container_name: 'portainer-agent'
+    logging: *default-logging
     restart: unless-stopped
     ports:
       - "9443:9443"
@@ -367,6 +390,7 @@ services:
   uptime-kuma:
     image: louislam/uptime-kuma:latest
     container_name: 'uptime-kuma'
+    logging: *default-logging
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -378,6 +402,7 @@ services:
   it-tools:
     image: corentinth/it-tools:latest
     container_name: 'it-tools'
+    logging: *default-logging
     restart: unless-stopped
     environment:
       TZ: '${TZ}'
@@ -392,6 +417,7 @@ services:
   n8n:
     image: n8nio/n8n:latest
     container_name: 'n8n'
+    logging: *default-logging
     restart: unless-stopped
     ports:
       - "5678:5678"

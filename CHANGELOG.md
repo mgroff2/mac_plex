@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docker-compose.yml** no longer contains machine-specific paths; new optional `ARR_DATA_DIR` and `DB_DATA_DIR` variables (default to `DATA_DIR`), plus `POSTGRES_*` and `N8N_DB_*` settings in `.env.example`
 - **.gitignore** excludes `*.code-workspace` files
 - **Container updates** now run nightly at 2:30 AM via cron (`scripts/update-containers.sh`), updating only services that are already running and skipping `AUTO_UPDATE_EXCLUDE` (default `mysql,postgres`); supports `--dry-run`
+- **Container logs** are capped at 10 MB × 3 files per service via a shared `x-logging` block in `docker-compose.yml`
 - **MySQL** now uses `restart: unless-stopped` so it starts again after a reboot or Docker Desktop restart, like every other service
 - **MySQL healthcheck** no longer passes the root password (`mysqladmin ping` needs no credentials), so it no longer appears in `docker inspect`, `docker events` or Portainer
 - **validate.sh** skips services that aren't deployed instead of failing them, while still failing containers that exist but aren't running; no longer suggests starting every service
