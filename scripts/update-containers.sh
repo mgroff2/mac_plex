@@ -14,6 +14,8 @@ set -uo pipefail
 
 # cron runs with a minimal PATH
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+# Suppress Docker Desktop "What's next" hints in the nightly log
+export DOCKER_CLI_HINTS=false
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
@@ -54,6 +56,7 @@ fi
 log "Updating services: ${services[*]}"
 
 if [ "$DRY_RUN" = true ]; then
+    log "DRY RUN: output below is simulated by Docker Compose - nothing is pulled, recreated or started"
     docker compose --dry-run pull "${services[@]}"
     docker compose --dry-run up -d --no-deps "${services[@]}"
     log "Dry run complete, no changes made"

@@ -14,6 +14,7 @@ NC='\033[0m' # No Color
 TESTS_PASSED=0
 TESTS_FAILED=0
 TESTS_TOTAL=0
+TESTS_SKIPPED=0
 
 # Function to print test results
 print_test() {
@@ -111,6 +112,10 @@ fi
 print_header "Docker Services"
 cd "$PROJECT_DIR/docker" || exit 1
 
+# Services with a container (any state) and services currently running
+CREATED_SERVICES=$(docker-compose ps -a --services 2>/dev/null)
+RUNNING_SERVICES=$(docker-compose ps --services --status running 2>/dev/null)
+
 # Check if docker-compose.yml exists
 if [ -f "docker-compose.yml" ]; then
     print_test "Docker Compose File" 0 "Found"
@@ -120,13 +125,17 @@ if [ -f "docker-compose.yml" ]; then
     if [ -n "$services" ]; then
         print_test "Docker Compose Config" 0 "Valid configuration"
         
-        # Check each service
+        # Services with no container are intentionally not deployed and are skipped.
+        # A container that exists but isn't running (crashed, exited) is a failure.
         print_info "Checking individual services..."
         for service in $services; do
-            if docker-compose ps "$service" | grep -q "Up"; then
+            if echo "$RUNNING_SERVICES" | grep -qx "$service"; then
                 print_test "Service: $service" 0 "Running"
+            elif echo "$CREATED_SERVICES" | grep -qx "$service"; then
+                print_test "Service: $service" 1 "Container exists but is not running"
             else
-                print_test "Service: $service" 1 "Not running"
+                echo -e "${BLUE}-${NC} Service: $service: Not deployed (skipped)"
+                TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
             fi
         done
     else
@@ -159,6 +168,13 @@ https_services_to_check=(
 )
 
 for service_name in "${https_services_to_check[@]}"; do
+    # Skip endpoints for compose services that aren't deployed (traefik runs natively)
+    if [ "$service_name" != "traefik" ] && ! echo "$CREATED_SERVICES" | grep -qx "$service_name"; then
+        echo -e "${BLUE}-${NC} HTTPS: $service_name: Service not deployed (skipped)"
+        TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
+        continue
+    fi
+
     # Check if service responds (200 OK, 3xx redirects, or 401/403 for auth-protected services)
     response_code=$(curl -s -o /dev/null -w "%{http_code}" "https://$service_name.$DOMAIN" 2>/dev/null)
     
@@ -217,6 +233,7 @@ print_header "Validation Summary"
 echo -e "${BLUE}Tests Passed: ${GREEN}$TESTS_PASSED${NC}"
 echo -e "${BLUE}Tests Failed: ${RED}$TESTS_FAILED${NC}"
 echo -e "${BLUE}Total Tests: $TESTS_TOTAL${NC}"
+echo -e "${BLUE}Skipped (not deployed): $TESTS_SKIPPED${NC}"
 
 if [ $TESTS_FAILED -eq 0 ]; then
     echo -e "\n${GREEN}🎉 All tests passed! Your Mac Plex Server setup looks good!${NC}"
@@ -228,7 +245,7 @@ else
     echo "   - Check your .env file configuration"
     echo "   - Verify your domain DNS settings"
     echo "   - Ensure ports 80 and 443 are forwarded to your Mac"
-    echo "   - Run: cd docker && docker-compose up -d"
+    echo "   - Start a specific service: cd docker && docker compose up -d <service>"
     echo "   - Check logs: tail -f /tmp/traefik.log"
     exit 1
 fi 

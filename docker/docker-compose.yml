@@ -283,7 +283,9 @@ services:
     #   --interactive-timeout=300
     #   --lower-case-table-names=1
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      # No credentials needed: mysqladmin ping exits 0 whenever the server is up,
+      # and keeping the password out of the command keeps it out of docker inspect/events
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 30s
       timeout: 10s
       retries: 3
