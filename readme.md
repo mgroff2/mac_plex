@@ -196,6 +196,9 @@ DATA_DIR=/path/to/your/docker/data
 # Where your media files are stored
 PLEX_DIR=/path/to/your/plex/media
 
+# Optional: TV library on a separate volume (defaults to ${PLEX_DIR}/TV Shows)
+# TV_DIR=/path/to/your/tv/shows
+
 # Optional: override where specific data lives (defaults to DATA_DIR)
 # ARR_DATA_DIR=/path/to/your/arr/data        # Radarr/Sonarr config
 # DB_DATA_DIR=/path/to/your/database/data    # MySQL/Postgres data

@@ -148,7 +148,7 @@ services:
     volumes:
       - '${ARR_DATA_DIR:-${DATA_DIR}}/sonarr/config:/config'
       - '${DATA_DIR}/nzbget/downloads:/data/downloads'
-      - '${PLEX_DIR}/TV Shows:/tv'
+      - '${TV_DIR:-${PLEX_DIR}/TV Shows}:/tv'
     networks:
       - traefik-proxy
 
