@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docker-compose.yml** no longer contains machine-specific paths; new optional `ARR_DATA_DIR` and `DB_DATA_DIR` variables (default to `DATA_DIR`), plus `POSTGRES_*` and `N8N_DB_*` settings in `.env.example`
 - **.gitignore** excludes `*.code-workspace` files
 - **Container updates** now run nightly at 2:30 AM via cron (`scripts/update-containers.sh`), updating only services that are already running and skipping `AUTO_UPDATE_EXCLUDE` (default `mysql,postgres`); supports `--dry-run`
+- **n8n** runs on PostgreSQL with its public URL, timezone and proxy settings, waits for Postgres to be healthy, and has a Traefik route at `n8n.<domain>`
 - **Portainer** no longer has a healthcheck that always reported unhealthy (the image has no `curl`)
 - **Container logs** are capped at 10 MB × 3 files per service via a shared `x-logging` block in `docker-compose.yml`
 - **MySQL** now uses `restart: unless-stopped` so it starts again after a reboot or Docker Desktop restart, like every other service

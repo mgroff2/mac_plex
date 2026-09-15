@@ -83,6 +83,7 @@ This setup includes 20+ integrated applications running in a hybrid macOS/Docker
 **AI & Automation:**
 - **Ollama** - Local AI language model hosting
 - **OpenWeb UI** - Web interface for AI interactions
+- **n8n** - Workflow automation (stores data in PostgreSQL)
 
 **Dashboards & Management:**
 - **Heimdall** - Primary application dashboard
@@ -357,6 +358,7 @@ Your Mac Plex Server includes these applications:
 ### 🤖 **AI & Automation**
 - **Ollama** - Local AI language models
 - **Open WebUI** - Web interface for AI chat
+- **n8n** - Workflow automation at `https://n8n.yourdomain.com`
 
 ### 🛠️ **Management & Utilities**
 - **Heimdall** - Application dashboard (start here!)

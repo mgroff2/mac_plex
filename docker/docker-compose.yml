@@ -415,6 +415,9 @@ services:
     container_name: 'n8n'
     logging: *default-logging
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "5678:5678"
     volumes:
@@ -422,6 +425,13 @@ services:
     networks:
       - traefik-proxy
     environment:
+      TZ: '${TZ}'
+      GENERIC_TIMEZONE: '${TZ}'
+      # Public URL behind Traefik, so webhooks and login redirects use the real hostname
+      N8N_HOST: 'n8n.${DOMAIN}'
+      N8N_PROTOCOL: https
+      WEBHOOK_URL: 'https://n8n.${DOMAIN}/'
+      N8N_PROXY_HOPS: 1
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: '${N8N_DB_HOST:-}'
       DB_POSTGRESDB_PORT: '${N8N_DB_PORT:-}'

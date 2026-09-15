@@ -73,6 +73,14 @@ http:
       middlewares:
         - all-ipwhitelist
 
+    n8n:
+      rule: "Host(`n8n.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: n8n-service
+      middlewares:
+        - all-ipwhitelist
+
     nzbget:
       rule: "Host(`nzbget.${DOMAIN}`)"
       entryPoints:
@@ -207,6 +215,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://localhost:8686"
+
+    n8n-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:5678"
 
     nzbget-service:
       loadBalancer:
