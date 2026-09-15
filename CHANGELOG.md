@@ -5,6 +5,19 @@ All notable changes to the Mac Plex Server project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### 🔧 Changed
+- **SSL certificates** now use a single Let's Encrypt wildcard certificate issued via the Cloudflare DNS-01 challenge (`CF_DNS_API_TOKEN`), configured once on the `websecure` entrypoint
+- **validate.sh** checks the served certificate's days until expiry, `acme.json` permissions and `CF_DNS_API_TOKEN`
+
+- **docker-compose.yml** no longer contains machine-specific paths; new optional `ARR_DATA_DIR` and `DB_DATA_DIR` variables (default to `DATA_DIR`), plus `POSTGRES_*` and `N8N_DB_*` settings in `.env.example`
+- **.gitignore** excludes `*.code-workspace` files
+
+### 🗑️ Removed
+- Manually exported certificate files (`certificates/aws/`), which could not auto-renew and caused an expired certificate
+- Per-router `certResolver` settings in `dynamic.yml.template`
+
 ## [1.0.0] - 2025-01-07
 
 ### 🎉 Initial Release

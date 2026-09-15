@@ -10,6 +10,15 @@ entryPoints:
 
   websecure:
     address: ":443"
+    http:
+      # Every router on this entrypoint uses one wildcard certificate
+      # (${DOMAIN} + *.${DOMAIN}) issued and renewed by the "le" resolver.
+      tls:
+        certResolver: le
+        domains:
+          - main: "${DOMAIN}"
+            sans:
+              - "*.${DOMAIN}"
 
   mysql:
     address: ":3307"
@@ -21,6 +30,20 @@ providers:
   file:
     filename: "dynamic.yml"
     watch: true
+
+certificatesResolvers:
+  le:
+    acme:
+      email: "${LETSENCRYPT_EMAIL}"
+      storage: "certificates/acme.json"
+      # DNS-01 via Cloudflare: required for wildcard certs and does not need
+      # ports 80/443 reachable from the internet. Reads CF_DNS_API_TOKEN from
+      # the environment (set in docker/.env, exported by the LaunchAgent).
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "1.0.0.1:53"
 
 log:
   level: DEBUG

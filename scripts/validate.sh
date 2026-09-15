@@ -61,6 +61,11 @@ fi
 print_header "Environment Variables"
 [ -n "$DOMAIN" ] && print_test "DOMAIN" 0 "Set to: $DOMAIN" || print_test "DOMAIN" 1 "Not set"
 [ -n "$LETSENCRYPT_EMAIL" ] && print_test "LETSENCRYPT_EMAIL" 0 "Set to: $LETSENCRYPT_EMAIL" || print_test "LETSENCRYPT_EMAIL" 1 "Not set"
+if [ -n "$CF_DNS_API_TOKEN" ] && [ "$CF_DNS_API_TOKEN" != "your_cloudflare_dns_api_token" ]; then
+    print_test "CF_DNS_API_TOKEN" 0 "Set (value hidden)"
+else
+    print_test "CF_DNS_API_TOKEN" 1 "Not set - required for Let's Encrypt DNS challenge"
+fi
 [ -n "$DATA_DIR" ] && print_test "DATA_DIR" 0 "Set to: $DATA_DIR" || print_test "DATA_DIR" 1 "Not set"
 [ -n "$PLEX_DIR" ] && print_test "PLEX_DIR" 0 "Set to: $PLEX_DIR" || print_test "PLEX_DIR" 1 "Not set"
 
@@ -72,7 +77,8 @@ print_header "Directory Structure"
 
 # Check required files
 print_header "Configuration Files"
-[ -f "$PROJECT_DIR/traefik/certificates/acme.json" ] && print_test "ACME Certificate File" 0 "Exists with correct permissions" || print_test "ACME Certificate File" 1 "Missing or incorrect permissions"
+ACME_FILE="$PROJECT_DIR/traefik/certificates/acme.json"
+[ -f "$ACME_FILE" ] && [ "$(stat -f '%Lp' "$ACME_FILE")" = "600" ] && print_test "ACME Certificate File" 0 "Exists with correct permissions (600)" || print_test "ACME Certificate File" 1 "Missing or permissions are not 600"
 [ -f "$PROJECT_DIR/traefik/traefik.yml" ] && print_test "Traefik Config" 0 "Generated from template" || print_test "Traefik Config" 1 "Missing - run apply-config.sh"
 [ -f "$PROJECT_DIR/traefik/dynamic.yml" ] && print_test "Dynamic Config" 0 "Generated from template" || print_test "Dynamic Config" 1 "Missing - run apply-config.sh"
 
@@ -171,10 +177,28 @@ done
 
 # SSL Certificate check
 print_header "SSL Certificates"
-if [ -f "$PROJECT_DIR/traefik/certificates/acme.json" ] && [ -s "$PROJECT_DIR/traefik/certificates/acme.json" ]; then
+if [ -f "$ACME_FILE" ] && [ -s "$ACME_FILE" ]; then
     print_test "SSL Certificates" 0 "Certificate file exists and is not empty"
 else
     print_test "SSL Certificates" 1 "Certificate file is empty or missing"
+fi
+
+# Check expiry of the certificate Traefik is actually serving
+if command -v openssl >/dev/null 2>&1; then
+    served_cert=$(echo | openssl s_client -connect 127.0.0.1:443 -servername "heimdall.$DOMAIN" 2>/dev/null | openssl x509 2>/dev/null)
+    if [ -z "$served_cert" ]; then
+        print_test "SSL Expiry" 1 "Could not read certificate served by Traefik on 127.0.0.1:443"
+    else
+        not_after=$(echo "$served_cert" | openssl x509 -noout -enddate | cut -d= -f2)
+        days_left=$(( ($(date -j -f "%b %e %T %Y %Z" "$not_after" +%s) - $(date +%s)) / 86400 ))
+        issuer=$(echo "$served_cert" | openssl x509 -noout -issuer | sed 's/^issuer=//')
+        # Let's Encrypt renews at 30 days left; under 14 means renewal is failing
+        if [ "$days_left" -ge 14 ]; then
+            print_test "SSL Expiry" 0 "$days_left days left (expires $not_after, $issuer)"
+        else
+            print_test "SSL Expiry" 1 "Only $days_left days left (expires $not_after) - check Traefik logs for ACME errors"
+        fi
+    fi
 fi
 
 # Check if SSL is working by testing a known working subdomain

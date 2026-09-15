@@ -80,8 +80,8 @@ fi
 
 # Process traefik.yml template
 if [ -f "$TRAEFIK_TEMPLATE" ]; then
-    sed "s/\${LETSENCRYPT_EMAIL}/$EMAIL/g" "$TRAEFIK_TEMPLATE" > "$TRAEFIK_OUTPUT"
-    echo "✅ Applied email '$EMAIL' to traefik.yml"
+    sed -e "s/\${LETSENCRYPT_EMAIL}/$EMAIL/g" -e "s/\${DOMAIN}/$DOMAIN/g" "$TRAEFIK_TEMPLATE" > "$TRAEFIK_OUTPUT"
+    echo "✅ Applied domain '$DOMAIN' and email '$EMAIL' to traefik.yml"
 else
     echo "⚠️  Traefik template not found: $TRAEFIK_TEMPLATE"
 fi 

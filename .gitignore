@@ -20,3 +20,6 @@ docker-compose.override.yml
 
 # Ignore traefik yml files
 traefik/*.yml
+
+# Ignore editor workspace files (contain local paths)
+*.code-workspace

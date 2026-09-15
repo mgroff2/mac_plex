@@ -195,6 +195,10 @@ nano docker/.env
 DATA_DIR=/path/to/your/docker/data
 # Where your media files are stored
 PLEX_DIR=/path/to/your/plex/media
+
+# Optional: override where specific data lives (defaults to DATA_DIR)
+# ARR_DATA_DIR=/path/to/your/arr/data        # Radarr/Sonarr config
+# DB_DATA_DIR=/path/to/your/database/data    # MySQL/Postgres data
 ```
 
 #### 👤 **User/Group Settings**
@@ -210,7 +214,12 @@ PGID=1000  # Replace with your actual group ID
 DOMAIN=example.com
 # Your email for Let's Encrypt SSL certificates
 LETSENCRYPT_EMAIL=your@email.com
+# Cloudflare API token used for the Let's Encrypt DNS challenge (wildcard cert)
+# Permissions: Zone:DNS:Edit + Zone:Zone:Read, scoped to your domain's zone only
+CF_DNS_API_TOKEN=your_cloudflare_dns_api_token
 ```
+
+> Your domain's DNS must be hosted on Cloudflare. Traefik uses the token to create a temporary `_acme-challenge` TXT record, so no inbound ports need to be open for certificate issuance or renewal.
 
 #### 🔒 **Security Settings**
 ```bash
@@ -226,7 +235,12 @@ MYSQL_ROOT_PASSWORD=your_secure_password_here
 MYSQL_DATABASE=your_database_name
 MYSQL_USER=your_database_user
 MYSQL_PASSWORD=your_database_password
+# Create secure credentials for PostgreSQL (used by Radarr, Sonarr and n8n)
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_secure_password_here
 ```
+
+> 🔒 **Keep machine-specific values in `.env`.** `docker-compose.yml` is committed to a public repository, so never hardcode absolute paths, usernames, domains, IP addresses or credentials in it. Add a variable to `.env` (and a placeholder to `.env.example`) instead.
 
 #### 🕐 **Timezone Settings**
 ```bash
@@ -360,7 +374,7 @@ Your Mac Plex Server includes these applications:
 ### 🔐 **Security & Networking**
 - **Traefik** - Reverse proxy with automatic SSL certificates
 - **IP Whitelisting** - Restrict access to your specified networks
-- **Let's Encrypt** - Free SSL certificates for all services
+- **Let's Encrypt** - Free wildcard SSL certificate for all services (Cloudflare DNS challenge)
 
 > 🔒 **Security Notice**: This setup includes comprehensive security measures. Read our [Security Guide](SECURITY.md) for detailed security configuration, best practices, and incident response procedures.
 
@@ -438,9 +452,11 @@ The setup includes IP whitelisting middleware that restricts access to your serv
 
 ### SSL Certificates (Automatic!)
 
-- **Automatic Generation**: Let's Encrypt certificates are automatically created for all your services
-- **Automatic Renewal**: Certificates are renewed before expiration
-- **Storage**: Certificates are stored in `traefik/certificates/acme.json`
+- **Automatic Generation**: A single Let's Encrypt wildcard certificate (`example.com` + `*.example.com`) covers all your services
+- **DNS Challenge**: Issued via Cloudflare DNS-01 using `CF_DNS_API_TOKEN`, so new subdomains need no extra certificates
+- **Automatic Renewal**: Traefik renews the certificate 30 days before it expires
+- **Storage**: Certificates are stored in `traefik/certificates/acme.json` (must be `chmod 600`)
+- **Monitoring**: `./scripts/validate.sh` reports days remaining on the certificate Traefik is serving
 - **Backup**: The install script automatically backs up existing certificates
 
 ### Adding New Services
@@ -542,9 +558,10 @@ chmod +x scripts/install.sh
 # Solutions:
 1. Wait 2-3 minutes for Let's Encrypt to generate certificates
 2. Check Traefik logs for certificate errors:
-   tail -f /tmp/traefik.log
-3. Verify your domain and email in .env file
-4. Check if port 80 is accessible from the internet (required for Let's Encrypt)
+   grep -iE 'acme|cloudflare|certificate' /tmp/traefik.log | tail -20
+3. Verify DOMAIN, LETSENCRYPT_EMAIL and CF_DNS_API_TOKEN in .env file
+4. Confirm the Cloudflare token has Zone:DNS:Edit and Zone:Zone:Read on your zone
+5. Check days remaining: ./scripts/validate.sh
 ```
 
 #### 🚨 **"Docker Container Won't Start"**

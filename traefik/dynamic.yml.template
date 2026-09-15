@@ -5,8 +5,6 @@ http:
       entryPoints:
         - websecure
       service: api@internal
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -15,8 +13,6 @@ http:
       entryPoints:
         - websecure
       service: adminer-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -25,8 +21,6 @@ http:
       entryPoints:
         - websecure
       service: ai-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -35,8 +29,6 @@ http:
       entryPoints:
         - websecure
       service: bazarr-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
     
@@ -45,8 +37,6 @@ http:
       entryPoints:
         - websecure
       service: bookstack-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -55,8 +45,6 @@ http:
       entryPoints:
         - websecure
       service: grafana-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -65,8 +53,6 @@ http:
       entryPoints:
         - websecure
       service: heimdall-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
         - heimdall-headers
@@ -76,8 +62,6 @@ http:
       entryPoints:
         - websecure
       service: it-tools-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -86,8 +70,6 @@ http:
       entryPoints:
         - websecure
       service: lidarr-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -96,8 +78,6 @@ http:
       entryPoints:
         - websecure
       service: nzbget-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -106,15 +86,12 @@ http:
       entryPoints:
         - websecure
       service: ombi-service
-      tls: {}
 
     organizr:
       rule: "Host(`organizr.${DOMAIN}`)"
       entryPoints:
         - websecure
       service: organizr-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -123,8 +100,6 @@ http:
       entryPoints:
         - websecure
       service: overseerr-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -133,8 +108,6 @@ http:
       entryPoints:
         - websecure
       service: phpmyadmin-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -143,8 +116,6 @@ http:
       entryPoints:
         - websecure
       service: portainer-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -153,8 +124,6 @@ http:
       entryPoints:
         - websecure
       service: prometheus-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -163,8 +132,6 @@ http:
       entryPoints:
         - websecure
       service: prowlarr-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -173,8 +140,6 @@ http:
       entryPoints:
         - websecure
       service: radarr-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -183,8 +148,6 @@ http:
       entryPoints:
         - websecure
       service: sonarr-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -193,8 +156,6 @@ http:
       entryPoints:
         - websecure
       service: tautulli-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -203,8 +164,6 @@ http:
       entryPoints:
         - websecure
       service: uptime-kuma-service
-      tls:
-        certResolver: le
       middlewares:
         - all-ipwhitelist
 
@@ -279,7 +238,6 @@ http:
         servers:
           - url: "http://localhost:9000"
 
-    portainer-agent-service:
     prowlarr-service:
       loadBalancer:
         servers:
@@ -344,9 +302,3 @@ tcp:
       ipAllowList:
         sourceRange:
 ${IP_ALLOW_LIST}
-
-
-tls:
-  certificates:
-    - certFile: certificates/aws/certificate.crt
-      keyFile: certificates/aws/private_key.key

@@ -40,7 +40,7 @@ services:
       - com.centurylinklabs.watchtower.enable=true
 
   nzbget:
-    image: 'lscr.io/linuxserver/nzbget:latest'
+    image: 'linuxserver/nzbget:latest'
     container_name: 'nzbget'
     restart: unless-stopped
     environment:
@@ -111,6 +111,9 @@ services:
     image: 'lscr.io/linuxserver/radarr:latest'
     container_name: 'radarr'
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       PGID: '${PGID}'
       PUID: '${PUID}'
@@ -118,7 +121,7 @@ services:
     ports:
       - "7878:7878"
     volumes:
-      - '${DATA_DIR}/radarr/config:/config'
+      - '${ARR_DATA_DIR:-${DATA_DIR}}/radarr/config:/config'
       - '${DATA_DIR}/nzbget/downloads:/data/downloads'
       - '${PLEX_DIR}/Movies:/movies'
     networks:
@@ -130,6 +133,9 @@ services:
     image: 'lscr.io/linuxserver/sonarr:latest'
     container_name: 'sonarr'
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       PGID: '${PGID}'
       PUID: '${PUID}'
@@ -137,7 +143,7 @@ services:
     ports:
       - "8989:8989"
     volumes:
-      - '${DATA_DIR}/sonarr/config:/config'
+      - '${ARR_DATA_DIR:-${DATA_DIR}}/sonarr/config:/config'
       - '${DATA_DIR}/nzbget/downloads:/data/downloads'
       - '${PLEX_DIR}/TV Shows:/tv'
     networks:
@@ -166,35 +172,35 @@ services:
   # AI APPS #
   ###########
 
-  ollama:
-    image: 'ollama/ollama:latest'
-    container_name: 'ollama'
-    restart: unless-stopped
-    environment:
-      TZ: '${TZ}'
-    volumes:
-      - '${DATA_DIR}/ollama/data:/root/.ollama'
-    networks:
-      - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
+  # ollama:
+  #   image: 'ollama/ollama:latest'
+  #   container_name: 'ollama'
+  #   restart: unless-stopped
+  #   environment:
+  #     TZ: '${TZ}'
+  #   volumes:
+  #     - '${DATA_DIR}/ollama/data:/root/.ollama'
+  #   networks:
+  #     - traefik-proxy
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=true
 
-  open-webui:
-    image: 'ghcr.io/open-webui/open-webui:latest'
-    container_name: 'open-webui'
-    restart: unless-stopped
-    environment:
-      OLLAMA_BASE_URL: 'http://ollama:11434'
-      # WEBUI_SECRET_KEY: '${WEBUI_SECRET_KEY}'
-      TZ: '${TZ}'
-    ports:
-      - "8082:8080"
-    volumes:
-      - '${DATA_DIR}/open-webui/data:/app/backend/data'
-    networks:
-      - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
+  # open-webui:
+  #   image: 'ghcr.io/open-webui/open-webui:latest'
+  #   container_name: 'open-webui'
+  #   restart: unless-stopped
+  #   environment:
+  #     OLLAMA_BASE_URL: 'http://ollama:11434'
+  #     # WEBUI_SECRET_KEY: '${WEBUI_SECRET_KEY}'
+  #     TZ: '${TZ}'
+  #   ports:
+  #     - "8082:8080"
+  #   volumes:
+  #     - '${DATA_DIR}/open-webui/data:/app/backend/data'
+  #   networks:
+  #     - traefik-proxy
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=true
 
   ###################
   # DASHBOARD APPS #
@@ -223,26 +229,48 @@ services:
       timeout: 10s
       retries: 3
 
-  organizr:
-    image: 'organizr/organizr:latest'
-    container_name: 'organizr'
-    restart: unless-stopped
-    environment:
-      PGID: '${PGID}'
-      PUID: '${PUID}'
-      TZ: '${TZ}'
-    ports:
-      - "8888:80"
-    volumes:
-      - '${DATA_DIR}/organizr/config:/config'
-    networks:
-      - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
+  # organizr:
+  #   image: 'organizr/organizr:latest'
+  #   container_name: 'organizr'
+  #   restart: unless-stopped
+  #   environment:
+  #     PGID: '${PGID}'
+  #     PUID: '${PUID}'
+  #     TZ: '${TZ}'
+  #   ports:
+  #     - "8888:80"
+  #   volumes:
+  #     - '${DATA_DIR}/organizr/config:/config'
+  #   networks:
+  #     - traefik-proxy
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=true
 
   ################
   # DATABASE APPS #
   ################
+
+  postgres:
+    image: postgres:16
+    container_name: 'postgres'
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      TZ: '${TZ}'
+    ports:
+      - "5432:5432"
+    volumes:
+      - '${DB_DATA_DIR:-${DATA_DIR}}/postgres/data:/var/lib/postgresql/data'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   adminer:
     image: adminer:latest
@@ -270,7 +298,7 @@ services:
     ports: 
       - "3306:3306"
     volumes:
-      - '${DATA_DIR}/mysql/data:/var/lib/mysql'
+      - '${DB_DATA_DIR:-${DATA_DIR}}/mysql/data:/var/lib/mysql'
     networks:
       - traefik-proxy
     labels:
@@ -347,32 +375,32 @@ services:
     labels:
       - com.centurylinklabs.watchtower.enable=true
 
-  bookstack:
-    image: linuxserver/bookstack:latest
-    container_name: 'bookstack'
-    restart: unless-stopped
-    environment:
-      TZ: '${TZ}'
-      PGID: '${PGID}'
-      PUID: '${PUID}'
-      DB_HOST: '${BOOKSTACK_DB_HOST}'
-      DB_DATABASE: '${BOOKSTACK_DB_DATABASE}'
-      DB_USERNAME: '${BOOKSTACK_DB_USERNAME}'
-      DB_PASSWORD: '${BOOKSTACK_DB_PASSWORD}'
-      DB_PORT: '${BOOKSTACK_DB_PORT}'
-      APP_URL: 'https://bookstack.${DOMAIN}'
-      APP_KEY: '${BOOKSTACK_APP_KEY}'
-    ports:
-      - "8085:80"
-    volumes:
-      - '${DATA_DIR}/bookstack/config:/config'
-    networks:
-      - traefik-proxy
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
+  # bookstack:
+  #   image: linuxserver/bookstack:latest
+  #   container_name: 'bookstack'
+  #   restart: unless-stopped
+  #   environment:
+  #     TZ: '${TZ}'
+  #     PGID: '${PGID}'
+  #     PUID: '${PUID}'
+  #     DB_HOST: '${BOOKSTACK_DB_HOST}'
+  #     DB_DATABASE: '${BOOKSTACK_DB_DATABASE}'
+  #     DB_USERNAME: '${BOOKSTACK_DB_USERNAME}'
+  #     DB_PASSWORD: '${BOOKSTACK_DB_PASSWORD}'
+  #     DB_PORT: '${BOOKSTACK_DB_PORT}'
+  #     APP_URL: 'https://bookstack.${DOMAIN}'
+  #     APP_KEY: '${BOOKSTACK_APP_KEY}'
+  #   ports:
+  #     - "8085:80"
+  #   volumes:
+  #     - '${DATA_DIR}/bookstack/config:/config'
+  #   networks:
+  #     - traefik-proxy
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=true
 
   watchtower:
-    image: containrrr/watchtower:latest
+    image: nickfedor/watchtower:latest
     container_name: 'watchtower'  
     restart: unless-stopped
     environment:
@@ -415,31 +443,53 @@ services:
     labels:
       - com.centurylinklabs.watchtower.enable=true
 
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: 'n8n'
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      - '${DATA_DIR}/n8n/data:/home/node/.n8n'
+    networks:
+      - traefik-proxy
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: '${N8N_DB_HOST:-}'
+      DB_POSTGRESDB_PORT: '${N8N_DB_PORT:-}'
+      DB_POSTGRESDB_DATABASE: '${N8N_DB_DATABASE:-}'
+      DB_POSTGRESDB_USER: '${N8N_DB_USER:-}'
+      DB_POSTGRESDB_PASSWORD: '${N8N_DB_PASSWORD:-}'
+      DB_POSTGRESDB_SCHEMA: '${N8N_DB_SCHEMA:-}'
+
   ###########
   # MONITORING #
   ###########
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: 'grafana'
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - '${DATA_DIR}/grafana/data:/var/lib/grafana'
-    networks:
-      - traefik-proxy
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: 'grafana'
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - '${DATA_DIR}/grafana/data:/var/lib/grafana'
+  #   networks:
+  #     - traefik-proxy
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: 'prometheus'
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-    volumes:
-      - '${DATA_DIR}/prometheus/data:/prometheus'
-    networks:
-      - traefik-proxy
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: 'prometheus'
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - '${DATA_DIR}/prometheus/data:/prometheus'
+  #   networks:
+  #     - traefik-proxy
 
 networks:
   traefik-proxy:
