@@ -261,6 +261,7 @@ services:
     # Version 8.4.0 is the latest version that I was able to get Ombi to work with - 2025-07-04
     image: mysql:8.4.0
     container_name: 'mysql'
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
       # MYSQL_DATABASE: '${MYSQL_DATABASE}'
