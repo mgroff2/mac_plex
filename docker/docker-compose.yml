@@ -347,11 +347,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik-proxy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # No healthcheck: the portainer-ce image has no shell, curl or wget to run one
 
   portainer-agent:
     image: portainer/agent:latest
