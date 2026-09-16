@@ -94,6 +94,7 @@ chmod +x "$PROJECT_DIR/scripts/apply-config.sh"
 chmod +x "$PROJECT_DIR/scripts/backup.sh"
 chmod +x "$PROJECT_DIR/scripts/update-containers.sh"
 chmod +x "$PROJECT_DIR/scripts/backup-databases.sh"
+chmod +x "$PROJECT_DIR/scripts/backup.sh"
 
 # Setup Docker cleanup cron jobs
 print_status "Setting up Docker cleanup cron jobs..."
@@ -127,6 +128,17 @@ else
     print_success "Database backup cron job already exists, skipping"
 fi
 
+# Setup nightly config backup cron job (runs last, so it picks up fresh dumps)
+print_status "Setting up config backup cron job..."
+
+if ! crontab -l 2>/dev/null | grep -q "scripts/backup.sh"; then
+    (crontab -l 2>/dev/null; echo "# Run every day at 4:00 AM - mirror app config, Plex db, Traefik certs and dumps to BACKUP_DIR") | crontab -
+    (crontab -l 2>/dev/null; echo "0 4 * * * \"$PROJECT_DIR/scripts/backup.sh\" >> /tmp/plex_backup.log 2>&1") | crontab -
+    print_success "Config backup cron job added successfully"
+else
+    print_success "Config backup cron job already exists, skipping"
+fi
+
 # Setup nightly container update cron job (replaces Watchtower)
 print_status "Setting up container update cron job..."
 
@@ -147,6 +159,7 @@ print_status "4. Start Docker containers: cd $PROJECT_DIR/docker && docker-compo
 print_status ""
 print_status "Automated maintenance:"
 print_status "• Database backups (PostgreSQL + MySQL): Daily at 2:00 AM"
+print_status "• Config backup to BACKUP_DIR: Daily at 4:00 AM (set BACKUP_DIR in .env first)"
 print_status "• Backup logs: /tmp/db-backup.log"
 print_status "• Container updates (running services only): Daily at 2:30 AM"
 print_status "• Update logs: /tmp/docker-update.log"

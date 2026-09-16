@@ -533,12 +533,14 @@ To add a new Docker service:
 | 2:30 AM | `scripts/update-containers.sh` | Pulls newer images and recreates **only services that are already running**, skipping `AUTO_UPDATE_EXCLUDE` | `/tmp/docker-update.log` |
 | 3:00 AM | `docker system prune -af` | Removes unused images, stopped containers, unused networks and build cache | `/tmp/docker-prune.log` |
 | 3:05 AM | `docker volume prune -f` | Removes unused Docker volumes | `/tmp/docker-prune.log` |
+| 4:00 AM | `scripts/backup.sh` | Mirrors app config, Plex's database, Traefik certificates, `.env` and the dumps to `BACKUP_DIR` - runs last so it captures that night's dumps. Logs an error and does nothing until `BACKUP_DIR` is set | `/tmp/plex_backup.log` |
 
 Both scripts accept `--dry-run`, which reports what they would do and changes nothing:
 
 ```bash
 ./scripts/update-containers.sh --dry-run
 ./scripts/backup-databases.sh --dry-run
+./scripts/backup.sh --dry-run
 ```
 
 **Why databases are dumped separately**: Sonarr, Radarr and n8n keep their data in PostgreSQL and Ombi keeps its data in MySQL. Those apps' own backup features only cover configuration files, **not** the databases. Keep `DB_BACKUP_DIR` on storage your own backups cover - by default it is on a media volume rather than beside the database files.
