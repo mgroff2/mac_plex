@@ -554,18 +554,34 @@ crontab -l
 
 ## Backup
 
-Use the provided backup script:
+Set `BACKUP_DIR` in `docker/.env` to a location on a **different physical volume**, then run:
 
 ```bash
-./scripts/backup.sh
+./scripts/backup.sh              # copy everything
+./scripts/backup.sh --dry-run    # show what would be copied
+./scripts/backup.sh --only plex,db-dumps
 ```
 
-This will backup:
-- Plex configuration
-- Docker volumes
-- Traefik configuration
+It mirrors six sets with rsync (incremental, so later runs are quick) and **does not stop any container**:
 
-Databases are handled separately by the nightly job described in [Automated Maintenance](#automated-maintenance).
+| Set | Contents |
+|-----|----------|
+| `docker-config` | Everything under `DATA_DIR` - app configuration and databases |
+| `arr-config` | Sonarr/Radarr config when `ARR_DATA_DIR` points elsewhere |
+| `db-dumps` | The nightly PostgreSQL/MySQL dumps |
+| `plex` | Plex preferences and `Plug-in Support` (its library database) |
+| `traefik` | Traefik configuration and `certificates/acme.json` |
+| `secrets` | `docker/.env`, copied as `chmod 600` |
+
+**Not included**, because it is large and either re-downloadable or regenerated automatically: your media, NZBGet downloads, Ollama models, `*arr` MediaCover artwork, Plex `Metadata`/`Media` thumbnails, logs and caches. For a typical setup this keeps the backup around 10 GB instead of hundreds.
+
+**Database consistency**: run `./scripts/backup-databases.sh` first, or let the 2:00 AM job do it. A copied live database file can be inconsistent; a dump cannot. See [Automated Maintenance](#automated-maintenance).
+
+**Media** is deliberately out of scope here - mirror it separately, for example:
+
+```bash
+rsync -a --partial --info=progress2 "$PLEX_DIR/Movies/" "/Volumes/Backup/Movies/"
+```
 
 ## Troubleshooting
 

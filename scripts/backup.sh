@@ -1,65 +1,123 @@
 #!/bin/bash
 
-# Configuration
-BACKUP_DIR="/Volumes/Backup/plex"
-DATE=$(date +%Y%m%d)
-LOG_FILE="/tmp/plex_backup.log"
+# Back up the things that are painful to recreate: app configuration, Plex's
+# library database, Traefik's certificates, the .env file and the nightly
+# database dumps. Media files are NOT included - they are far too large and
+# should be mirrored separately.
+#
+# Nothing is stopped: containers keep running. Database consistency comes from
+# scripts/backup-databases.sh (run it first, or let the 2:00 AM cron job do it),
+# because dumps are consistent snapshots while a copied live database file is not.
+#
+# Usage: ./backup.sh [--dry-run] [--only name1,name2]
+#   names: docker-config, arr-config, db-dumps, plex, traefik, secrets
+#
+# Deliberately excluded: media files, NZBGet downloads, Ollama models, *arr
+# MediaCover artwork, logs and caches - all large and re-downloadable or
+# regenerable. Plex's Metadata/Media folders are excluded for the same reason;
+# its library database is covered by Plex's own scheduled backups.
+#
+# Set BACKUP_DIR in docker/.env (ideally on a different physical volume).
 
-# Colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+set -uo pipefail
 
-# Ensure backup directory exists
-mkdir -p "$BACKUP_DIR"
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
-# Function to log messages
-log_message() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
-}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+ENV_FILE="$PROJECT_DIR/docker/.env"
+LOG_FILE="${BACKUP_LOG:-/tmp/plex_backup.log}"
 
-# Backup Plex configuration
-backup_plex() {
-    log_message "Starting Plex configuration backup..."
-    tar -czf "$BACKUP_DIR/plex_config_$DATE.tar.gz" ~/Library/Application\ Support/Plex\ Media\ Server/
-    if [ $? -eq 0 ]; then
-        log_message "${GREEN}Plex configuration backup completed${NC}"
-    else
-        log_message "${RED}Plex configuration backup failed${NC}"
+RSYNC=$(command -v rsync)
+DRY_RUN=false
+ONLY=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --dry-run) DRY_RUN=true ;;
+        --only) ONLY="$2"; shift ;;
+        *) echo "Usage: $0 [--dry-run] [--only docker-config,arr-config,db-dumps,plex,traefik,secrets]"; exit 1 ;;
+    esac
+    shift
+done
+
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"; }
+
+get_env() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- | sed -E "s/^['\"]//; s/['\"]$//"; }
+
+[ -f "$ENV_FILE" ] || { log "ERROR: $ENV_FILE not found"; exit 1; }
+
+DATA_DIR=$(get_env DATA_DIR)
+ARR_DATA_DIR=$(get_env ARR_DATA_DIR); ARR_DATA_DIR="${ARR_DATA_DIR:-$DATA_DIR}"
+DB_BACKUP_DIR=$(get_env DB_BACKUP_DIR); DB_BACKUP_DIR="${DB_BACKUP_DIR:-$DATA_DIR/db-backups}"
+BACKUP_DIR="${BACKUP_DIR:-$(get_env BACKUP_DIR)}"   # env var wins, for testing
+PLEX_APP_DIR="$HOME/Library/Application Support/Plex Media Server"
+
+if [ -z "$BACKUP_DIR" ]; then
+    log "ERROR: BACKUP_DIR is not set in $ENV_FILE - point it at your backup volume, e.g. BACKUP_DIR=/Volumes/Backup/mac_plex"
+    exit 1
+fi
+if [ ! -d "$(dirname "$BACKUP_DIR")" ]; then
+    log "ERROR: $(dirname "$BACKUP_DIR") does not exist - is the backup volume connected?"
+    exit 1
+fi
+
+# name|source|destination subdir|extra rsync excludes (comma-separated)
+JOBS=(
+    "docker-config|$DATA_DIR|docker-data|nzbget/downloads,nzbget/intermediate,db-backups,ollama,MediaCover,logs,*.log,Cache"
+    "arr-config|$ARR_DATA_DIR|arr-data|MediaCover,logs,*.log,Cache"
+    "db-dumps|$DB_BACKUP_DIR|db-dumps|"
+    "plex|$PLEX_APP_DIR|plex-app-support|Cache,Metadata,Media,Updates,Codecs,Crash Reports,Diagnostics,Logs"
+    "traefik|$PROJECT_DIR/traefik|traefik|"
+    "secrets|$ENV_FILE|secrets|"
+)
+
+failed=0
+copied=0
+$DRY_RUN && log "DRY RUN - no files will be written"
+log "Backup destination: $BACKUP_DIR"
+
+for job in "${JOBS[@]}"; do
+    IFS='|' read -r name src dst excludes <<< "$job"
+    [ -n "$ONLY" ] && [[ ",$ONLY," != *",$name,"* ]] && continue
+    if [ ! -e "$src" ]; then
+        log "SKIP $name: $src does not exist"
+        continue
     fi
-}
 
-# Backup Docker volumes
-backup_docker() {
-    log_message "Starting Docker volumes backup..."
-    cd ~/Documents/mac_plex/docker
-    docker-compose down
-    tar -czf "$BACKUP_DIR/docker_volumes_$DATE.tar.gz" ${DATA_DIR}
-    docker-compose up -d
-    if [ $? -eq 0 ]; then
-        log_message "${GREEN}Docker volumes backup completed${NC}"
-    else
-        log_message "${RED}Docker volumes backup failed${NC}"
+    opts=(-a --delete --human-readable --stats)
+    $DRY_RUN && opts+=(-n)
+    # Plex's own scheduled database backups are kept; its live .db files are not
+    # consistent while Plex runs, so rely on those dumps for restores.
+    [ "$name" = "plex" ] && opts+=(--exclude='*.db-wal' --exclude='*.db-shm')
+    if [ -n "$excludes" ]; then
+        IFS=',' read -ra ex <<< "$excludes"
+        for e in "${ex[@]}"; do opts+=(--exclude="$e"); done
     fi
-}
 
-# Backup Traefik configuration
-backup_traefik() {
-    log_message "Starting Traefik configuration backup..."
-    sudo tar -czf "$BACKUP_DIR/traefik_config_$DATE.tar.gz" /private/etc/traefik/
-    if [ $? -eq 0 ]; then
-        log_message "${GREEN}Traefik configuration backup completed${NC}"
+    target="$BACKUP_DIR/$dst"
+    $DRY_RUN || mkdir -p "$target"
+    src_arg="$src"; [ -d "$src" ] && src_arg="$src/"
+
+    out=$("$RSYNC" "${opts[@]}" "$src_arg" "$target/" 2>&1)
+    rc=$?
+    # 24 = "some files vanished before they could be transferred"; normal for
+    # live app data (logs rotating, databases checkpointing) and not a failure.
+    if [ $rc -eq 0 ] || [ $rc -eq 24 ]; then
+        size=$(echo "$out" | awk -F': ' '/Total transferred file size/ {print $2}')
+        files=$(echo "$out" | awk -F': ' '/Number of regular files transferred/ {print $2}')
+        log "OK   $name -> $dst (${files:-0} files, ${size:-0} transferred)$([ $rc -eq 24 ] && echo '  [some files changed during copy]')"
+        copied=$((copied + 1))
     else
-        log_message "${RED}Traefik configuration backup failed${NC}"
+        log "FAIL $name: $(echo "$out" | tail -2 | tr '\n' ' ')"
+        failed=1
     fi
-}
+done
 
-# Run backups
-backup_plex
-backup_docker
-backup_traefik
+# The .env file holds credentials - keep the copy unreadable by other users
+if ! $DRY_RUN && [ -f "$BACKUP_DIR/secrets/.env" ]; then
+    chmod 700 "$BACKUP_DIR/secrets"; chmod 600 "$BACKUP_DIR/secrets/.env"
+fi
 
-# Clean up old backups (keep last 7 days)
-find "$BACKUP_DIR" -name "*.tar.gz" -mtime +7 -delete
-
-log_message "Backup process completed" 
+$DRY_RUN || log "Backup size on disk: $(du -sh "$BACKUP_DIR" 2>/dev/null | cut -f1)"
+[ "$failed" -eq 0 ] && log "Backup complete ($copied sets)" || log "Backup finished WITH ERRORS"
+exit $failed
