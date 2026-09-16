@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docker-compose.yml** no longer contains machine-specific paths; new optional `ARR_DATA_DIR` and `DB_DATA_DIR` variables (default to `DATA_DIR`), plus `POSTGRES_*` and `N8N_DB_*` settings in `.env.example`
 - **.gitignore** excludes `*.code-workspace` files
 - **Container updates** now run nightly at 2:30 AM via cron (`scripts/update-containers.sh`), updating only services that are already running and skipping `AUTO_UPDATE_EXCLUDE` (default `mysql,postgres`); supports `--dry-run`
+- **README** documents the four cron jobs (database backup, container updates, image/volume prune), `AUTO_UPDATE_EXCLUDE`, `DB_BACKUP_*`, `SONARR_DB_*`/`RADARR_DB_*`, and the per-service logging anchor; the "Adding New Services" example no longer shows the removed per-router `certResolver`
 - **Nightly database backups** via `scripts/backup-databases.sh` (cron, 2:00 AM): per-database PostgreSQL dumps plus globals and a full MySQL dump, written to `DB_BACKUP_DIR` with `DB_BACKUP_KEEP_DAYS` retention. Sonarr/Radarr/n8n keep their data in PostgreSQL, which their own backup features do not cover
 - **`.env.example`** documents the `SONARR_DB_*` / `RADARR_DB_*` settings (used in each app's `config.xml`, not by compose)
 - **TV library location** is configurable with optional `TV_DIR` (defaults to `${PLEX_DIR}/TV Shows`), so TV can live on a separate volume from Movies/Music

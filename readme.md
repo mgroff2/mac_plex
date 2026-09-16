@@ -17,9 +17,10 @@ A complete Docker-based Plex media server setup for macOS with Traefik reverse p
   - Tautulli (Plex Analytics)
 - **AI Tools** with Ollama and Open WebUI
 - **Dashboards** with Heimdall and Organizr
-- **Database** with MySQL, phpMyAdmin, and Adminer
+- **Database** with PostgreSQL (Sonarr/Radarr/n8n), MySQL, phpMyAdmin, and Adminer
 - **Monitoring** with Grafana and Prometheus
 - **Utilities** with Portainer, IT-Tools, and Uptime Kuma
+- **Automated maintenance**: nightly database dumps, container updates, and Docker cleanup (see [Automated Maintenance](#automated-maintenance))
 
 ## Prerequisites
 
@@ -243,10 +244,18 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_secure_password_here
 ```
 
+> **Sonarr/Radarr on PostgreSQL**: `.env.example` also lists `SONARR_DB_*` and `RADARR_DB_*`. Docker Compose does **not** read them - copy the values into each app's `config.xml` (`<PostgresUser>`, `<PostgresPassword>`, `<PostgresPort>`, `<PostgresHost>`, `<PostgresMainDb>`, `<PostgresLogDb>`) and create the databases and roles first, because the apps will not. See the [Servarr Postgres guide](https://wiki.servarr.com/en/sonarr/postgres-setup). Leave those settings out and the app simply uses SQLite in its config folder.
+
 > 🔒 **Keep machine-specific values in `.env`.** `docker-compose.yml` is committed to a public repository, so never hardcode absolute paths, usernames, domains, IP addresses or credentials in it. Add a variable to `.env` (and a placeholder to `.env.example`) instead.
 
 #### 🕐 **Timezone Settings**
 ```bash
+# Which running services the nightly update job skips (comma-separated)
+AUTO_UPDATE_EXCLUDE=mysql,postgres
+# Where nightly database dumps go, and how long to keep them
+# DB_BACKUP_DIR=/path/to/your/db-backups   # defaults to $DATA_DIR/db-backups
+DB_BACKUP_KEEP_DAYS=14
+
 # Set your timezone (find yours at: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 TZ=America/New_York
 ```
@@ -471,6 +480,9 @@ To add a new Docker service:
    ```yaml
    myservice:
      image: myservice:latest
+     container_name: 'myservice'
+     logging: *default-logging   # caps logs at 10 MB x 3 files
+     restart: unless-stopped
      ports:
        - "8080:80"
      networks:
@@ -484,11 +496,11 @@ To add a new Docker service:
      entryPoints:
        - websecure
      service: myservice-service
-     tls:
-       certResolver: le
      middlewares:
        - all-ipwhitelist
    ```
+
+   No `tls:` block is needed - the `websecure` entrypoint applies the wildcard certificate to every router.
 
 3. **Add service definition**:
    ```yaml
@@ -511,6 +523,35 @@ To add a new Docker service:
 - **Data Directories**: Update `.env` file and restart Docker containers
 - **Ports**: Edit `docker/docker-compose.yml` and restart containers
 
+## Automated Maintenance
+
+`install.sh` schedules four cron jobs. Times are staggered so backups finish before updates, and updates before cleanup:
+
+| Time | Job | What it does | Log |
+|------|-----|--------------|-----|
+| 2:00 AM | `scripts/backup-databases.sh` | Dumps every PostgreSQL database (plus roles/globals) and all MySQL databases to `DB_BACKUP_DIR`, pruning dumps older than `DB_BACKUP_KEEP_DAYS` | `/tmp/db-backup.log` |
+| 2:30 AM | `scripts/update-containers.sh` | Pulls newer images and recreates **only services that are already running**, skipping `AUTO_UPDATE_EXCLUDE` | `/tmp/docker-update.log` |
+| 3:00 AM | `docker system prune -af` | Removes unused images, stopped containers, unused networks and build cache | `/tmp/docker-prune.log` |
+| 3:05 AM | `docker volume prune -f` | Removes unused Docker volumes | `/tmp/docker-prune.log` |
+
+Both scripts accept `--dry-run`, which reports what they would do and changes nothing:
+
+```bash
+./scripts/update-containers.sh --dry-run
+./scripts/backup-databases.sh --dry-run
+```
+
+**Why databases are dumped separately**: Sonarr, Radarr and n8n keep their data in PostgreSQL and Ombi keeps its data in MySQL. Those apps' own backup features only cover configuration files, **not** the databases. Keep `DB_BACKUP_DIR` on storage your own backups cover - by default it is on a media volume rather than beside the database files.
+
+**Why updates are scripted rather than using Watchtower**: Watchtower was archived by its maintainers in December 2025. The script updates only what is already running, so services you deliberately keep stopped are never started.
+
+To check the schedule, or run a job by hand:
+
+```bash
+crontab -l
+./scripts/backup-databases.sh
+```
+
 ## Backup
 
 Use the provided backup script:
@@ -523,6 +564,8 @@ This will backup:
 - Plex configuration
 - Docker volumes
 - Traefik configuration
+
+Databases are handled separately by the nightly job described in [Automated Maintenance](#automated-maintenance).
 
 ## Troubleshooting
 
@@ -689,7 +732,9 @@ mac_plex/
 ├── scripts/
 │   ├── install.sh           # Installation script
 │   ├── apply-config.sh      # Configuration template processor
-│   ├── backup.sh            # Backup script
+│   ├── backup.sh            # Backup script (Plex, Docker data, Traefik)
+│   ├── backup-databases.sh  # Nightly PostgreSQL + MySQL dumps (cron)
+│   ├── update-containers.sh # Nightly container image updates (cron)
 │   └── validate.sh          # Installation validation script
 ├── traefik/
 │   ├── traefik.yml.template # Traefik main configuration template
