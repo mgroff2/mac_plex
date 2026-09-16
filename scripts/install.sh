@@ -93,6 +93,7 @@ fi
 chmod +x "$PROJECT_DIR/scripts/apply-config.sh"
 chmod +x "$PROJECT_DIR/scripts/backup.sh"
 chmod +x "$PROJECT_DIR/scripts/update-containers.sh"
+chmod +x "$PROJECT_DIR/scripts/backup-databases.sh"
 
 # Setup Docker cleanup cron jobs
 print_status "Setting up Docker cleanup cron jobs..."
@@ -115,6 +116,17 @@ else
     print_success "Docker cleanup cron jobs already exist, skipping"
 fi
 
+# Setup nightly database backup cron job
+print_status "Setting up database backup cron job..."
+
+if ! crontab -l 2>/dev/null | grep -q "backup-databases.sh"; then
+    (crontab -l 2>/dev/null; echo "# Run every day at 2:00 AM - dump PostgreSQL and MySQL databases (the apps do not back these up themselves)") | crontab -
+    (crontab -l 2>/dev/null; echo "0 2 * * * \"$PROJECT_DIR/scripts/backup-databases.sh\" >> /tmp/db-backup.log 2>&1") | crontab -
+    print_success "Database backup cron job added successfully"
+else
+    print_success "Database backup cron job already exists, skipping"
+fi
+
 # Setup nightly container update cron job (replaces Watchtower)
 print_status "Setting up container update cron job..."
 
@@ -134,6 +146,8 @@ print_status "3. If Traefik is running, restart it: launchctl unload ~/Library/L
 print_status "4. Start Docker containers: cd $PROJECT_DIR/docker && docker-compose up -d"
 print_status ""
 print_status "Automated maintenance:"
+print_status "• Database backups (PostgreSQL + MySQL): Daily at 2:00 AM"
+print_status "• Backup logs: /tmp/db-backup.log"
 print_status "• Container updates (running services only): Daily at 2:30 AM"
 print_status "• Update logs: /tmp/docker-update.log"
 print_status "• Docker system cleanup: Daily at 3:00 AM"

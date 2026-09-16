@@ -370,6 +370,7 @@ Your Mac Plex Server includes these applications:
 - **IT-Tools** - Collection of useful web tools
 
 ### 🗄️ **Database**
+- **PostgreSQL** - Database server for Sonarr, Radarr and n8n
 - **MySQL** - Database server
 - **phpMyAdmin** - Web-based MySQL administration
 - **Adminer** - Lightweight database management
