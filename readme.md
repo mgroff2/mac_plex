@@ -530,10 +530,28 @@ To add a new Docker service:
 Beszel's hub runs in Docker (`beszel.yourdomain.com`), but its **agent runs natively on the Mac**. A container only sees Docker's Linux VM, not the Mac's own CPU, memory, disks or temperatures.
 
 1. Open `https://beszel.yourdomain.com` and create the admin account.
-2. Click **Add System**, choose **Homebrew**, and use `http://localhost:8091` as the hub URL. Copy the command Beszel shows you and run it in Terminal. It installs `beszel-agent` and starts it as a background service.
-3. For drive health (SMART), install `smartmontools` (`brew install smartmontools`); the agent reads it automatically. Drives in **USB** enclosures can't report SMART data on macOS; Thunderbolt/SATA enclosures can.
+2. Click **Add System** and choose **Binary**. Set **Host/IP** to `host.docker.internal` and **Port** to `45876` (the hub already uses 8091). Keep the generated public key and token.
+3. Install the agent (Homebrew asks you to trust the tap first):
+   ```bash
+   brew trust henrygd/beszel
+   brew install beszel-agent
+   ```
+4. Create `~/.config/beszel/beszel-agent.env` (`chmod 600`, it holds the token):
+   ```bash
+   HUB_URL=http://localhost:8091
+   LISTEN=45876
+   KEY="ssh-ed25519 ..."          # public key from the Add System dialog
+   TOKEN="..."                     # token from the Add System dialog
+   # launchd's PATH does not include Homebrew, where smartctl lives
+   PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+   # Also track free space on the media volumes (mount point__label)
+   EXTRA_FILESYSTEMS=/Volumes/Plex__Movies,/Volumes/PlexTV__TV
+   ```
+5. Start it: `brew services start beszel-agent`. The log (`~/.cache/beszel/beszel-agent.log`) should show `WebSocket connected`.
 
-The agent's settings live in `~/.config/beszel/beszel-agent.env` and its log in `~/.cache/beszel/beszel-agent.log`. Manage it with `brew services list` / `brew services restart beszel-agent`.
+For drive health (SMART), install `smartmontools` (`brew install smartmontools`); the agent picks it up automatically. Drives in **USB** enclosures can't report SMART data on macOS; Thunderbolt/SATA enclosures can. Read/write rates aren't available for AppleRAID volumes, only free space.
+
+Manage the agent with `brew services list` / `brew services restart beszel-agent`.
 
 ## Automated Maintenance
 
