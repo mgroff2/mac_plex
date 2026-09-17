@@ -525,7 +525,7 @@ To add a new Docker service:
 
 ## Automated Maintenance
 
-`install.sh` schedules four cron jobs. Times are staggered so backups finish before updates, and updates before cleanup:
+`install.sh` schedules five cron jobs. Times are staggered so backups finish before updates, and updates before cleanup:
 
 | Time | Job | What it does | Log |
 |------|-----|--------------|-----|
@@ -535,7 +535,9 @@ To add a new Docker service:
 | 3:05 AM | `docker volume prune -f` | Removes unused Docker volumes | `/tmp/docker-prune.log` |
 | 4:00 AM | `scripts/backup.sh` | Mirrors app config, Plex's database, Traefik certificates, `.env` and the dumps to `BACKUP_DIR` - runs last so it captures that night's dumps. Logs an error and does nothing until `BACKUP_DIR` is set | `/tmp/plex_backup.log` |
 
-Both scripts accept `--dry-run`, which reports what they would do and changes nothing:
+> **Required: give cron Full Disk Access.** macOS blocks cron jobs from reading or writing external volumes (`/Volumes/...`), so the backup jobs fail with `Operation not permitted` until you allow it. Open **System Settings → Privacy & Security → Full Disk Access**, click **+**, press **Cmd+Shift+G**, enter `/usr/sbin/cron`, and turn it on. Running the scripts from Terminal works regardless, so a successful manual run does not prove the cron job works; check the log after the next scheduled run.
+
+All three scripts accept `--dry-run`, which reports what they would do and changes nothing:
 
 ```bash
 ./scripts/update-containers.sh --dry-run
