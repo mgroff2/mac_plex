@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ✨ Added
+- **Beszel** monitoring (hub container at `beszel.<domain>`, agent installed natively with Homebrew so it sees the Mac itself, not Docker's VM): host and per-container metrics, drive health via smartmontools, alerts
+- **Dozzle** log viewer at `dozzle.<domain>` (read-only Docker socket, protected by the IP allowlist)
+
 ### 🔧 Changed
 - **SSL certificates** now use a single Let's Encrypt wildcard certificate issued via the Cloudflare DNS-01 challenge (`CF_DNS_API_TOKEN`), configured once on the `websecure` entrypoint
 - **validate.sh** checks the served certificate's days until expiry, `acme.json` permissions and `CF_DNS_API_TOKEN`
@@ -30,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🗑️ Removed
 - Manually exported certificate files (`certificates/aws/`), which could not auto-renew and caused an expired certificate
 - Per-router `certResolver` settings in `dynamic.yml.template`
+- **Grafana** and **Prometheus** (commented-out services and their Traefik routes), replaced by Beszel
 - **Watchtower** service and `com.centurylinklabs.watchtower.enable` labels (upstream project archived December 2025)
 
 ## [1.0.0] - 2025-01-07

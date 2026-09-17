@@ -32,6 +32,14 @@ http:
       middlewares:
         - all-ipwhitelist
     
+    beszel:
+      rule: "Host(`beszel.${DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: beszel-service
+      middlewares:
+        - all-ipwhitelist
+
     bookstack:
       rule: "Host(`bookstack.${DOMAIN}`)"
       entryPoints:
@@ -40,11 +48,11 @@ http:
       middlewares:
         - all-ipwhitelist
 
-    grafana:
-      rule: "Host(`grafana.${DOMAIN}`)"
+    dozzle:
+      rule: "Host(`dozzle.${DOMAIN}`)"
       entryPoints:
         - websecure
-      service: grafana-service
+      service: dozzle-service
       middlewares:
         - all-ipwhitelist
 
@@ -127,14 +135,6 @@ http:
       middlewares:
         - all-ipwhitelist
 
-    prometheus:
-      rule: "Host(`prometheus.${DOMAIN}`)"
-      entryPoints:
-        - websecure
-      service: prometheus-service
-      middlewares:
-        - all-ipwhitelist
-
     prowlarr:
       rule: "Host(`prowlarr.${DOMAIN}`)"
       entryPoints:
@@ -191,15 +191,20 @@ http:
         servers:
           - url: "http://localhost:6767"
 
+    beszel-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8091"
+
     bookstack-service:
       loadBalancer:
         servers:
           - url: "http://localhost:8085"
 
-    grafana-service:
+    dozzle-service:
       loadBalancer:
         servers:
-          - url: "http://localhost:3000"
+          - url: "http://localhost:8092"
 
     heimdall-service:
       loadBalancer:
@@ -255,11 +260,6 @@ http:
       loadBalancer:
         servers:
           - url: "http://localhost:9696"
-
-    prometheus-service:
-      loadBalancer:
-        servers:
-          - url: "http://localhost:9090"
 
     radarr-service:
       loadBalancer:

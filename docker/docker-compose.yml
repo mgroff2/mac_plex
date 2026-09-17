@@ -444,27 +444,38 @@ services:
   # MONITORING #
   ###########
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   container_name: 'grafana'
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - '${DATA_DIR}/grafana/data:/var/lib/grafana'
-  #   networks:
-  #     - traefik-proxy
+  # Beszel hub: dashboard and alerts. The agent runs natively on the Mac
+  # (Homebrew), because a container only sees Docker's Linux VM, not the host
+  # or its drives. The agent connects to the hub on localhost:8091.
+  beszel:
+    image: henrygd/beszel:latest
+    container_name: 'beszel'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      APP_URL: 'https://beszel.${DOMAIN}'
+    ports:
+      - "8091:8090"
+    volumes:
+      - '${DATA_DIR}/beszel/data:/beszel_data'
+    networks:
+      - traefik-proxy
 
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   container_name: 'prometheus'
-  #   restart: unless-stopped
-  #   ports:
-  #     - "9090:9090"
-  #   volumes:
-  #     - '${DATA_DIR}/prometheus/data:/prometheus'
-  #   networks:
-  #     - traefik-proxy
+  # Dozzle: live log viewer for all containers (read-only Docker access).
+  # It has no login of its own; access is limited by Traefik's IP allowlist.
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: 'dozzle'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      DOZZLE_NO_ANALYTICS: 'true'
+    ports:
+      - "8092:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-proxy
 
 networks:
   traefik-proxy:

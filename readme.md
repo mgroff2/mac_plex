@@ -18,8 +18,8 @@ A complete Docker-based Plex media server setup for macOS with Traefik reverse p
 - **AI Tools** with Ollama and Open WebUI
 - **Dashboards** with Heimdall and Organizr
 - **Database** with PostgreSQL (Sonarr/Radarr/n8n), MySQL, phpMyAdmin, and Adminer
-- **Monitoring** with Grafana and Prometheus
-- **Utilities** with Portainer, IT-Tools, and Uptime Kuma
+- **Monitoring** with Beszel (host, container and drive-health metrics), Dozzle (container logs) and Uptime Kuma
+- **Utilities** with Portainer and IT-Tools
 - **Automated maintenance**: nightly database dumps, container updates, and Docker cleanup (see [Automated Maintenance](#automated-maintenance))
 
 ## Prerequisites
@@ -100,6 +100,8 @@ This setup includes 20+ integrated applications running in a hybrid macOS/Docker
 
 **System Monitoring:**
 - **Uptime Kuma** - Internal service monitoring
+- **Beszel** - Mac CPU/memory/disk/network, per-container usage, drive health and alerts
+- **Dozzle** - Live log viewer for all containers
 
 ### 🔄 Plex Request Engine Flow
 
@@ -363,8 +365,8 @@ Your Mac Plex Server includes these applications:
 
 ### 📊 **Monitoring & Analytics**
 - **Tautulli** - Plex usage analytics and statistics
-- **Grafana** - System monitoring dashboards
-- **Prometheus** - Metrics collection
+- **Beszel** - System, container and drive-health monitoring at `https://beszel.yourdomain.com`
+- **Dozzle** - Container log viewer at `https://dozzle.yourdomain.com`
 - **Uptime Kuma** - Service uptime monitoring
 
 ### 🤖 **AI & Automation**
@@ -522,6 +524,16 @@ To add a new Docker service:
 - **IP Restrictions**: Update `IP_ALLOW_LIST` in `.env` file and restart Traefik
 - **Data Directories**: Update `.env` file and restart Docker containers
 - **Ports**: Edit `docker/docker-compose.yml` and restart containers
+
+## Monitoring (Beszel)
+
+Beszel's hub runs in Docker (`beszel.yourdomain.com`), but its **agent runs natively on the Mac**. A container only sees Docker's Linux VM, not the Mac's own CPU, memory, disks or temperatures.
+
+1. Open `https://beszel.yourdomain.com` and create the admin account.
+2. Click **Add System**, choose **Homebrew**, and use `http://localhost:8091` as the hub URL. Copy the command Beszel shows you and run it in Terminal. It installs `beszel-agent` and starts it as a background service.
+3. For drive health (SMART), install `smartmontools` (`brew install smartmontools`); the agent reads it automatically. Drives in **USB** enclosures can't report SMART data on macOS; Thunderbolt/SATA enclosures can.
+
+The agent's settings live in `~/.config/beszel/beszel-agent.env` and its log in `~/.cache/beszel/beszel-agent.log`. Manage it with `brew services list` / `brew services restart beszel-agent`.
 
 ## Automated Maintenance
 
