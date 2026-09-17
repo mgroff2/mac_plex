@@ -40,7 +40,12 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"; }
+# Interactive runs echo to the terminal too; under cron stdout is usually
+# redirected to the same log file, so only append once.
+log() {
+    local line="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    if [ -t 1 ]; then echo "$line" | tee -a "$LOG_FILE"; else echo "$line" >> "$LOG_FILE"; fi
+}
 
 get_env() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- | sed -E "s/^['\"]//; s/['\"]$//"; }
 
