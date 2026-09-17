@@ -92,9 +92,22 @@ fi
 # Make scripts executable
 chmod +x "$PROJECT_DIR/scripts/apply-config.sh"
 chmod +x "$PROJECT_DIR/scripts/backup.sh"
+chmod +x "$PROJECT_DIR/scripts/check-drive-health.sh"
 chmod +x "$PROJECT_DIR/scripts/update-containers.sh"
 chmod +x "$PROJECT_DIR/scripts/backup-databases.sh"
 chmod +x "$PROJECT_DIR/scripts/backup.sh"
+chmod +x "$PROJECT_DIR/scripts/check-drive-health.sh"
+
+# Setup daily drive health check
+print_status "Setting up drive health cron job..."
+
+if ! crontab -l 2>/dev/null | grep -q "check-drive-health.sh"; then
+    (crontab -l 2>/dev/null; echo "# Run every day at 6:00 AM - check S.M.A.R.T. health of the array drives") | crontab -
+    (crontab -l 2>/dev/null; echo "0 6 * * * \"$PROJECT_DIR/scripts/check-drive-health.sh\" >> /tmp/drive-health.log 2>&1") | crontab -
+    print_success "Drive health cron job added successfully"
+else
+    print_success "Drive health cron job already exists, skipping"
+fi
 
 # Setup Docker cleanup cron jobs
 print_status "Setting up Docker cleanup cron jobs..."

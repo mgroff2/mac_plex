@@ -555,7 +555,7 @@ Manage the agent with `brew services list` / `brew services restart beszel-agent
 
 ## Automated Maintenance
 
-`install.sh` schedules five cron jobs. Times are staggered so backups finish before updates, and updates before cleanup:
+`install.sh` schedules six cron jobs. Times are staggered so backups finish before updates, and updates before cleanup:
 
 | Time | Job | What it does | Log |
 |------|-----|--------------|-----|
@@ -579,7 +579,11 @@ All three scripts accept `--dry-run`, which reports what they would do and chang
 
 **Why updates are scripted rather than using Watchtower**: Watchtower was archived by its maintainers in December 2025. The script updates only what is already running, so services you deliberately keep stopped are never started.
 
-**Heartbeat monitoring**: each of the three scripts pings an Uptime Kuma push monitor when it finishes (`up` on success, `down` on failure), so a job that silently stops running raises an alert instead of going unnoticed. Set `UPTIME_PUSH_DB_BACKUP`, `UPTIME_PUSH_CONTAINER_UPDATE` and `UPTIME_PUSH_CONFIG_BACKUP` in `docker/.env`; without them the scripts behave exactly as before.
+| 6:00 AM | `scripts/check-drive-health.sh` | Checks S.M.A.R.T. health, temperature and sector counts on every drive that reports them, and fails if one is degrading | `/tmp/drive-health.log` |
+
+**Drive health**: the media arrays are RAID 0, so one failed drive loses the array. The check needs `smartmontools` (`brew install smartmontools`). Drives in **USB** enclosures cannot report S.M.A.R.T. data on macOS - they are counted, never failed. Tune with `DRIVE_TEMP_WARN` (default 55 C).
+
+**Heartbeat monitoring**: each of the four scripts pings an Uptime Kuma push monitor when it finishes (`up` on success, `down` on failure), so a job that silently stops running raises an alert instead of going unnoticed. Set `UPTIME_PUSH_DB_BACKUP`, `UPTIME_PUSH_CONTAINER_UPDATE`, `UPTIME_PUSH_CONFIG_BACKUP` and `UPTIME_PUSH_DRIVE_HEALTH` in `docker/.env`; without them the scripts behave exactly as before.
 
 To check the schedule, or run a job by hand:
 

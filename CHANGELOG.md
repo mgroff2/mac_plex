@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Beszel** monitoring (hub container at `beszel.<domain>`, agent installed natively with Homebrew so it sees the Mac itself, not Docker's VM): host and per-container metrics, drive health via smartmontools, alerts
 - **Dozzle** log viewer at `dozzle.<domain>`: login required (`DOZZLE_AUTH_PROVIDER=simple`, users stored in `$DATA_DIR/dozzle/data`), container actions and shell disabled, behind the IP allowlist
 
+- **scripts/check-drive-health.sh** (cron, 6:00 AM): S.M.A.R.T. health, temperature and reallocated/pending sector checks for every drive that reports them, with an Uptime Kuma push alert. The media arrays are RAID 0, so a single failing drive loses the array
 - **Heartbeat pings** from `backup-databases.sh`, `update-containers.sh` and `backup.sh` to Uptime Kuma push monitors (`UPTIME_PUSH_*` in `.env`, optional), so a nightly job that stops running is noticed
 
 ### 🔧 Changed
