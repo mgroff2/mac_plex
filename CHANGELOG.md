@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Beszel** monitoring (hub container at `beszel.<domain>`, agent installed natively with Homebrew so it sees the Mac itself, not Docker's VM): host and per-container metrics, drive health via smartmontools, alerts
 - **Dozzle** log viewer at `dozzle.<domain>`: login required (`DOZZLE_AUTH_PROVIDER=simple`, users stored in `$DATA_DIR/dozzle/data`), container actions and shell disabled, behind the IP allowlist
 
+- **Heartbeat pings** from `backup-databases.sh`, `update-containers.sh` and `backup.sh` to Uptime Kuma push monitors (`UPTIME_PUSH_*` in `.env`, optional), so a nightly job that stops running is noticed
+
 ### 🔧 Changed
 - **SSL certificates** now use a single Let's Encrypt wildcard certificate issued via the Cloudflare DNS-01 challenge (`CF_DNS_API_TOKEN`), configured once on the `websecure` entrypoint
 - **validate.sh** checks the served certificate's days until expiry, `acme.json` permissions and `CF_DNS_API_TOKEN`

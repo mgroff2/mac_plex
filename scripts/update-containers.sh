@@ -28,6 +28,17 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
+get_env() { grep -E "^$1=" "$COMPOSE_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- | sed -E "s/^['\"]//; s/['\"]$//"; }
+# Ping an Uptime Kuma push monitor so a job that stops running is noticed.
+# Set the URL in docker/.env; without it this does nothing.
+heartbeat() {
+    local url status msg
+    url=$(get_env UPTIME_PUSH_CONTAINER_UPDATE)
+    [ -n "$url" ] || return 0
+    status="$1"; msg="$2"
+    curl -fsS -m 10 --get --data-urlencode "status=$status" --data-urlencode "msg=$msg" "$url" >/dev/null 2>&1 || true
+}
+
 cd "$COMPOSE_DIR" || { log "ERROR: compose directory not found: $COMPOSE_DIR"; exit 1; }
 
 if ! docker info >/dev/null 2>&1; then
@@ -72,7 +83,9 @@ fi
 # Compose only recreates containers whose image or configuration changed.
 if docker compose up -d --no-deps "${services[@]}"; then
     log "Update complete"
+    heartbeat up "${#services[@]} services checked"
 else
     log "ERROR: failed to recreate one or more services"
+    heartbeat down "failed to recreate one or more services"
     exit 1
 fi

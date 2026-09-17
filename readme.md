@@ -579,6 +579,8 @@ All three scripts accept `--dry-run`, which reports what they would do and chang
 
 **Why updates are scripted rather than using Watchtower**: Watchtower was archived by its maintainers in December 2025. The script updates only what is already running, so services you deliberately keep stopped are never started.
 
+**Heartbeat monitoring**: each of the three scripts pings an Uptime Kuma push monitor when it finishes (`up` on success, `down` on failure), so a job that silently stops running raises an alert instead of going unnoticed. Set `UPTIME_PUSH_DB_BACKUP`, `UPTIME_PUSH_CONTAINER_UPDATE` and `UPTIME_PUSH_CONFIG_BACKUP` in `docker/.env`; without them the scripts behave exactly as before.
+
 To check the schedule, or run a job by hand:
 
 ```bash

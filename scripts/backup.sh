@@ -49,6 +49,16 @@ log() {
 
 get_env() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- | sed -E "s/^['\"]//; s/['\"]$//"; }
 
+# Ping an Uptime Kuma push monitor so a job that stops running is noticed.
+# Set the URL in docker/.env; without it this does nothing.
+heartbeat() {
+    local url status msg
+    url=$(get_env UPTIME_PUSH_CONFIG_BACKUP)
+    [ -n "$url" ] || return 0
+    status="$1"; msg="$2"
+    curl -fsS -m 10 --get --data-urlencode "status=$status" --data-urlencode "msg=$msg" "$url" >/dev/null 2>&1 || true
+}
+
 [ -f "$ENV_FILE" ] || { log "ERROR: $ENV_FILE not found"; exit 1; }
 
 DATA_DIR=$(get_env DATA_DIR)
@@ -124,5 +134,11 @@ if ! $DRY_RUN && [ -f "$BACKUP_DIR/secrets/.env" ]; then
 fi
 
 $DRY_RUN || log "Backup size on disk: $(du -sh "$BACKUP_DIR" 2>/dev/null | cut -f1)"
-[ "$failed" -eq 0 ] && log "Backup complete ($copied sets)" || log "Backup finished WITH ERRORS"
+if [ "$failed" -eq 0 ]; then
+    log "Backup complete ($copied sets)"
+    $DRY_RUN || heartbeat up "$copied sets copied"
+else
+    log "Backup finished WITH ERRORS"
+    $DRY_RUN || heartbeat down "one or more sets failed"
+fi
 exit $failed

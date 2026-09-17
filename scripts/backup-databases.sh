@@ -28,6 +28,16 @@ log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
 
 get_env() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- | sed -E "s/^['\"]//; s/['\"]$//"; }
 
+# Ping an Uptime Kuma push monitor so a job that stops running is noticed.
+# Set the URL in docker/.env; without it this does nothing.
+heartbeat() {
+    local url status msg
+    url=$(get_env UPTIME_PUSH_DB_BACKUP)
+    [ -n "$url" ] || return 0
+    status="$1"; msg="$2"
+    curl -fsS -m 10 --get --data-urlencode "status=$status" --data-urlencode "msg=$msg" "$url" >/dev/null 2>&1 || true
+}
+
 DATA_DIR=$(get_env DATA_DIR)
 BACKUP_DIR=$(get_env DB_BACKUP_DIR); BACKUP_DIR="${BACKUP_DIR:-$DATA_DIR/db-backups}"
 KEEP_DAYS=$(get_env DB_BACKUP_KEEP_DAYS); KEEP_DAYS="${KEEP_DAYS:-14}"
@@ -89,5 +99,11 @@ deleted=$(find "$BACKUP_DIR" -type f \( -name '*.dump' -o -name '*.sql.gz' \) -m
 [ "$deleted" -gt 0 ] && log "removed $deleted dump(s) older than $KEEP_DAYS days"
 
 log "total on disk: $(du -sh "$BACKUP_DIR" | cut -f1)"
-[ "$failed" -eq 0 ] && log "Database backup complete" || log "Database backup finished WITH ERRORS"
+if [ "$failed" -eq 0 ]; then
+    log "Database backup complete"
+    heartbeat up "dumps ok"
+else
+    log "Database backup finished WITH ERRORS"
+    heartbeat down "one or more dumps failed"
+fi
 exit $failed
