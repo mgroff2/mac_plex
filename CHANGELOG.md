@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 - **Beszel** monitoring (hub container at `beszel.<domain>`, agent installed natively with Homebrew so it sees the Mac itself, not Docker's VM): host and per-container metrics, drive health via smartmontools, alerts
-- **Dozzle** log viewer at `dozzle.<domain>` (read-only Docker socket, protected by the IP allowlist)
+- **Dozzle** log viewer at `dozzle.<domain>`: login required (`DOZZLE_AUTH_PROVIDER=simple`, users stored in `$DATA_DIR/dozzle/data`), container actions and shell disabled, behind the IP allowlist
 
 ### 🔧 Changed
 - **SSL certificates** now use a single Let's Encrypt wildcard certificate issued via the Cloudflare DNS-01 challenge (`CF_DNS_API_TOKEN`), configured once on the `websecure` entrypoint

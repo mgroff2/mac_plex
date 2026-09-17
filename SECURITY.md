@@ -27,7 +27,7 @@ The Mac Plex Server setup includes several security measures by default:
 
 ### 3. **Access Control**
 - **Service-level Protection**: Each service has its own authentication
-- **Admin-only Services**: Critical services (Portainer, Beszel) require additional authentication. Dozzle has no login of its own and shows every container's logs, so it relies entirely on the IP allowlist - keep that list tight
+- **Admin-only Services**: Critical services (Portainer, Beszel, Dozzle) require their own login on top of the IP allowlist. Dozzle's login is set up in its first-run wizard and stored in `$DATA_DIR/dozzle/data`; container actions and shell access stay disabled
 - **Request Approval**: Media requests require admin approval via Ombi/Overseerr
 
 ## 🔒 Security Configuration

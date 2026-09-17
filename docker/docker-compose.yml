@@ -461,8 +461,9 @@ services:
     networks:
       - traefik-proxy
 
-  # Dozzle: live log viewer for all containers (read-only Docker access).
-  # It has no login of its own; access is limited by Traefik's IP allowlist.
+  # Dozzle: live log viewer for all containers. Login is required (users and
+  # settings live in /data), on top of Traefik's IP allowlist. Note that a
+  # read-only socket mount does not limit what the Docker API allows.
   dozzle:
     image: amir20/dozzle:latest
     container_name: 'dozzle'
@@ -470,10 +471,14 @@ services:
     restart: unless-stopped
     environment:
       DOZZLE_NO_ANALYTICS: 'true'
+      # Require login even if /data is lost (fails closed instead of open).
+      # Actions and shell stay disabled (Dozzle's default).
+      DOZZLE_AUTH_PROVIDER: 'simple'
     ports:
       - "8092:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - '${DATA_DIR}/dozzle/data:/data'
     networks:
       - traefik-proxy
 

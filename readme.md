@@ -366,7 +366,7 @@ Your Mac Plex Server includes these applications:
 ### 📊 **Monitoring & Analytics**
 - **Tautulli** - Plex usage analytics and statistics
 - **Beszel** - System, container and drive-health monitoring at `https://beszel.yourdomain.com`
-- **Dozzle** - Container log viewer at `https://dozzle.yourdomain.com`
+- **Dozzle** - Container log viewer at `https://dozzle.yourdomain.com` (login required; create it in the setup wizard on first visit)
 - **Uptime Kuma** - Service uptime monitoring
 
 ### 🤖 **AI & Automation**
