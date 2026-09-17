@@ -581,7 +581,7 @@ All three scripts accept `--dry-run`, which reports what they would do and chang
 
 | 6:00 AM | `scripts/check-drive-health.sh` | Checks S.M.A.R.T. health, temperature and sector counts on every drive that reports them, and fails if one is degrading | `/tmp/drive-health.log` |
 
-**Drive health**: the media arrays are RAID 0, so one failed drive loses the array. The check needs `smartmontools` (`brew install smartmontools`). Drives in **USB** enclosures cannot report S.M.A.R.T. data on macOS - they are counted, never failed. Tune with `DRIVE_TEMP_WARN` (default 55 C).
+**Drive health**: the media arrays are RAID 0, so one failed drive loses the array. The check needs `smartmontools` (`brew install smartmontools`). Drives in **USB** enclosures cannot report S.M.A.R.T. data on macOS, because the USB-SATA bridge does not pass those commands through - they are counted, never failed. For those, the script falls back to AppleRAID membership, which catches a drive that dies or drops out of the array. Tune with `DRIVE_TEMP_WARN` (default 55 C).
 
 **Heartbeat monitoring**: each of the four scripts pings an Uptime Kuma push monitor when it finishes (`up` on success, `down` on failure), so a job that silently stops running raises an alert instead of going unnoticed. Set `UPTIME_PUSH_DB_BACKUP`, `UPTIME_PUSH_CONTAINER_UPDATE`, `UPTIME_PUSH_CONFIG_BACKUP` and `UPTIME_PUSH_DRIVE_HEALTH` in `docker/.env`; without them the scripts behave exactly as before.
 

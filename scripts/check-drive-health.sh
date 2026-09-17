@@ -4,8 +4,10 @@
 # when one starts to fail. The media arrays are RAID 0 (AppleRAID stripes), so a
 # single dead drive loses the whole array - early warning is the only defence.
 #
-# Drives in USB enclosures cannot report S.M.A.R.T. data on macOS; they are
-# counted and reported, but never treated as a failure.
+# Drives in USB enclosures cannot report S.M.A.R.T. data on macOS (the USB-SATA
+# bridge does not pass the commands through); they are counted and reported, but
+# never treated as a failure. AppleRAID membership is checked for every drive, so
+# a disk that dies or drops out is caught even without S.M.A.R.T.
 #
 # Usage: ./check-drive-health.sh [--quiet]
 # Scheduled daily by install.sh via cron; logs to /tmp/drive-health.log
@@ -74,6 +76,25 @@ done
 
 [ "$unsupported" -gt 0 ] && log "NOTE $unsupported drive(s) cannot report S.M.A.R.T. (USB enclosures)"
 
+# AppleRAID membership works for every drive, including the USB enclosure that
+# cannot report S.M.A.R.T.: a disk that dies or drops out stops being "Online".
+raid=$(diskutil appleRAID list 2>/dev/null)
+if [ -n "$raid" ]; then
+    while IFS= read -r line; do
+        set_name=$(echo "$line" | sed -E 's/^Name: +//')
+        [ -n "$set_name" ] && log "RAID set $set_name"
+    done < <(echo "$raid" | grep -E '^Name:')
+    members=$(echo "$raid" | grep -cE '^[0-9]+ +disk')
+    degraded=$(echo "$raid" | grep -E '^[0-9]+ +disk' | grep -vc 'Online')
+    if [ "$degraded" -gt 0 ]; then
+        problems+=("$degraded of $members RAID members not Online")
+    else
+        log "OK   all $members RAID members Online"
+    fi
+    bad_sets=$(echo "$raid" | grep -E '^Status:' | grep -vc 'Online')
+    [ "$bad_sets" -gt 0 ] && problems+=("$bad_sets RAID set(s) not Online")
+fi
+
 if [ "$checked" -eq 0 ]; then
     log "ERROR: no drive reported S.M.A.R.T. data"
     heartbeat down "no drive reported SMART data"
@@ -82,7 +103,7 @@ fi
 
 if [ ${#problems[@]} -eq 0 ]; then
     log "All $checked drive(s) healthy"
-    heartbeat up "$checked drives healthy, $unsupported unsupported"
+    heartbeat up "$checked drives healthy, $unsupported without SMART, ${members:-0} RAID members online"
     exit 0
 fi
 
