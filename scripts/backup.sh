@@ -69,10 +69,12 @@ PLEX_APP_DIR="$HOME/Library/Application Support/Plex Media Server"
 
 if [ -z "$BACKUP_DIR" ]; then
     log "ERROR: BACKUP_DIR is not set in $ENV_FILE - point it at your backup volume, e.g. BACKUP_DIR=/Volumes/Backup/mac_plex"
+    $DRY_RUN || heartbeat down "BACKUP_DIR is not set"
     exit 1
 fi
 if [ ! -d "$(dirname "$BACKUP_DIR")" ]; then
     log "ERROR: $(dirname "$BACKUP_DIR") does not exist - is the backup volume connected?"
+    $DRY_RUN || heartbeat down "backup volume not connected"
     exit 1
 fi
 
