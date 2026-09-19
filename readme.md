@@ -138,8 +138,11 @@ This setup includes 20+ integrated applications running in a hybrid macOS/Docker
 - **Uptime Robot**: External monitoring for Ombi accessibility with Discord and Email alerts
 
 **💾 Storage Infrastructure:**
-- **Orico External HDD Enclosures** (Thunderbolt 4 / USB 4): High-capacity storage for media library
-- **Dual drive setup**: Redundancy and performance optimization for large media collections
+- **Two 5-bay ORICO enclosures**, each striped as a macOS AppleRAID **RAID 0** set:
+  - Movies/Music: ORICO 9858T3 (Thunderbolt 3), 5 x 20TB
+  - TV Shows: ORICO 9958C3 (USB 3.1 Gen 2), 5 x 14TB
+- **No redundancy**: RAID 0 is for capacity and speed, and one failed drive loses that whole array. Protection comes from backups instead (Backblaze offsite plus a local backup array) and from the daily drive-health check, which warns before a drive fails
+- Only the Thunderbolt enclosure can report S.M.A.R.T. data; USB enclosures cannot pass it through on macOS
 
 ## Quick Start (TL;DR)
 
