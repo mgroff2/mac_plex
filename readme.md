@@ -16,7 +16,7 @@ A complete Docker-based Plex media server setup for macOS with Traefik reverse p
   - Tautulli (Plex Analytics)
 - **Automation** with n8n
 - **Dashboard** with Heimdall
-- **Database** with PostgreSQL (Sonarr/Radarr/n8n), MySQL (Ombi) and Adminer
+- **Database** with PostgreSQL (Sonarr/Radarr/Bazarr/n8n), MySQL (Ombi) and Adminer
 - **Monitoring** with Beszel (host, container and drive-health metrics), Dozzle (container logs) and Uptime Kuma
 - **Utilities** with Portainer and IT-Tools
 - **Automated maintenance**: nightly database dumps, container updates, and Docker cleanup (see [Automated Maintenance](#automated-maintenance))
@@ -374,7 +374,7 @@ Your Mac Plex Server includes these applications:
 - **IT-Tools** - Collection of useful web tools
 
 ### 🗄️ **Database**
-- **PostgreSQL** - Database server for Sonarr, Radarr and n8n
+- **PostgreSQL** - Database server for Sonarr, Radarr, Bazarr and n8n
 - **MySQL** - Database server for Ombi
 - **Adminer** - Web-based administration for MySQL and PostgreSQL
 

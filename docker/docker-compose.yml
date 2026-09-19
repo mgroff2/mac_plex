@@ -15,14 +15,30 @@ services:
     container_name: 'bazarr'
     logging: *default-logging
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       PGID: '${PGID}'
       PUID: '${PUID}'
       TZ: '${TZ}'
+      # PostgreSQL instead of SQLite: SQLite's shared-memory locking is not
+      # reliable on Docker Desktop's macOS file sharing and corrupts under load.
+      # Off unless BAZARR_DB_ENABLED=true (see .env.example).
+      POSTGRES_ENABLED: '${BAZARR_DB_ENABLED:-false}'
+      POSTGRES_HOST: 'postgres'
+      POSTGRES_PORT: '5432'
+      POSTGRES_DATABASE: '${BAZARR_DB_NAME:-bazarr}'
+      POSTGRES_USERNAME: '${BAZARR_DB_USER:-bazarr}'
+      POSTGRES_PASSWORD: '${BAZARR_DB_PASSWORD:-}'
     ports:
       - "6767:6767"
     volumes:
       - '${DATA_DIR}/bazarr/config:/config'
+      # Same container paths as Sonarr (/tv) and Radarr (/movies), so the paths
+      # they report match what Bazarr sees and no path mappings are needed
+      - '${TV_DIR:-${PLEX_DIR}/TV Shows}:/tv'
+      - '${PLEX_DIR}/Movies:/movies'
     networks:
       - traefik-proxy
 

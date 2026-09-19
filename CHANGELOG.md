@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Heartbeat pings** from `backup-databases.sh`, `update-containers.sh` and `backup.sh` to Uptime Kuma push monitors (`UPTIME_PUSH_*` in `.env`, optional), so a nightly job that stops running is noticed
 
 ### 🔧 Changed
+- **Bazarr** can see the media (mounts `/tv` and `/movies` at the same paths as Sonarr and Radarr) and can run on PostgreSQL (`BAZARR_DB_*`), because its SQLite database corrupts on Docker Desktop's macOS file sharing
 - **SSL certificates** now use a single Let's Encrypt wildcard certificate issued via the Cloudflare DNS-01 challenge (`CF_DNS_API_TOKEN`), configured once on the `websecure` entrypoint
 - **validate.sh** checks the served certificate's days until expiry, `acme.json` permissions and `CF_DNS_API_TOKEN`
 
