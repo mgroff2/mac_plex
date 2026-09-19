@@ -16,14 +16,6 @@ http:
       middlewares:
         - all-ipwhitelist
 
-    ai:
-      rule: "Host(`ai.${DOMAIN}`)"
-      entryPoints:
-        - websecure
-      service: ai-service
-      middlewares:
-        - all-ipwhitelist
-
     bazarr:
       rule: "Host(`bazarr.${DOMAIN}`)"
       entryPoints:
@@ -37,14 +29,6 @@ http:
       entryPoints:
         - websecure
       service: beszel-service
-      middlewares:
-        - all-ipwhitelist
-
-    bookstack:
-      rule: "Host(`bookstack.${DOMAIN}`)"
-      entryPoints:
-        - websecure
-      service: bookstack-service
       middlewares:
         - all-ipwhitelist
 
@@ -103,30 +87,6 @@ http:
         - websecure
       service: ombi-service
 
-    organizr:
-      rule: "Host(`organizr.${DOMAIN}`)"
-      entryPoints:
-        - websecure
-      service: organizr-service
-      middlewares:
-        - all-ipwhitelist
-
-    overseerr:
-      rule: "Host(`overseerr.${DOMAIN}`)"
-      entryPoints:
-        - websecure
-      service: overseerr-service
-      middlewares:
-        - all-ipwhitelist
-
-    phpmyadmin:
-      rule: "Host(`phpmy.${DOMAIN}`)"
-      entryPoints:
-        - websecure
-      service: phpmyadmin-service
-      middlewares:
-        - all-ipwhitelist
-
     portainer:
       rule: "Host(`portainer.${DOMAIN}`)"
       entryPoints:
@@ -181,11 +141,6 @@ http:
         servers:
           - url: "http://localhost:8090"
 
-    ai-service:
-      loadBalancer:
-        servers:
-          - url: "http://localhost:8082"
-
     bazarr-service:
       loadBalancer:
         servers:
@@ -195,11 +150,6 @@ http:
       loadBalancer:
         servers:
           - url: "http://localhost:8091"
-
-    bookstack-service:
-      loadBalancer:
-        servers:
-          - url: "http://localhost:8085"
 
     dozzle-service:
       loadBalancer:
@@ -235,21 +185,6 @@ http:
       loadBalancer:
         servers:
           - url: "http://localhost:3579"
-
-    organizr-service:
-      loadBalancer:
-        servers:
-          - url: "http://localhost:8888"
-
-    overseerr-service:
-      loadBalancer:
-        servers:
-          - url: "http://localhost:5055"
-
-    phpmyadmin-service:
-      loadBalancer:
-        servers:
-          - url: "http://localhost:8083"
 
     portainer-service:
       loadBalancer:
@@ -293,25 +228,3 @@ ${IP_ALLOW_LIST}
           X-Forwarded-Host: "heimdall.${DOMAIN}"
         customResponseHeaders:
           Content-Security-Policy: "upgrade-insecure-requests"
-          
-tcp:
-  routers:
-    mysql-router:
-      entryPoints:
-        - mysql
-      rule: "HostSNI(`*`)"
-      service: mysql-service
-      middlewares:
-        - mysql-whitelist
-
-  services:
-    mysql-service:
-      loadBalancer:
-        servers:
-          - address: "mysql:3306"
-
-  middlewares:
-    mysql-whitelist:
-      ipAllowList:
-        sourceRange:
-${IP_ALLOW_LIST}

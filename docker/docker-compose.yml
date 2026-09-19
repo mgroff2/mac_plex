@@ -78,22 +78,6 @@ services:
     networks:
       - traefik-proxy
 
-  overseerr:
-    image: 'lscr.io/linuxserver/overseerr:latest'
-    container_name: 'overseer'
-    logging: *default-logging
-    restart: unless-stopped
-    environment:
-      PGID: '${PGID}'
-      PUID: '${PUID}'
-      TZ: '${TZ}'
-    ports:
-      - "5055:5055"
-    volumes:
-      - '${DATA_DIR}/overseerr/config:/config'
-    networks:
-      - traefik-proxy
-
   prowlarr:
     image: 'lscr.io/linuxserver/prowlarr:latest'
     container_name: 'prowlarr'
@@ -168,36 +152,6 @@ services:
     networks:
       - traefik-proxy
 
-  ###########
-  # AI APPS #
-  ###########
-
-  # ollama:
-  #   image: 'ollama/ollama:latest'
-  #   container_name: 'ollama'
-  #   restart: unless-stopped
-  #   environment:
-  #     TZ: '${TZ}'
-  #   volumes:
-  #     - '${DATA_DIR}/ollama/data:/root/.ollama'
-  #   networks:
-  #     - traefik-proxy
-
-  # open-webui:
-  #   image: 'ghcr.io/open-webui/open-webui:latest'
-  #   container_name: 'open-webui'
-  #   restart: unless-stopped
-  #   environment:
-  #     OLLAMA_BASE_URL: 'http://ollama:11434'
-  #     # WEBUI_SECRET_KEY: '${WEBUI_SECRET_KEY}'
-  #     TZ: '${TZ}'
-  #   ports:
-  #     - "8082:8080"
-  #   volumes:
-  #     - '${DATA_DIR}/open-webui/data:/app/backend/data'
-  #   networks:
-  #     - traefik-proxy
-
   ###################
   # DASHBOARD APPS #
   ###################
@@ -223,21 +177,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # organizr:
-  #   image: 'organizr/organizr:latest'
-  #   container_name: 'organizr'
-  #   restart: unless-stopped
-  #   environment:
-  #     PGID: '${PGID}'
-  #     PUID: '${PUID}'
-  #     TZ: '${TZ}'
-  #   ports:
-  #     - "8888:80"
-  #   volumes:
-  #     - '${DATA_DIR}/organizr/config:/config'
-  #   networks:
-  #     - traefik-proxy
 
   ################
   # DATABASE APPS #
@@ -311,26 +250,6 @@ services:
       timeout: 10s
       retries: 3
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    platform: linux/amd64
-    container_name: 'phpmyadmin'
-    logging: *default-logging
-    restart: unless-stopped
-    environment:
-      TZ: '${TZ}'
-      PMA_HOST: 'mysql'
-      # PMA_PORT: '3306'
-      # PMA_USER: 'root'
-      # PMA_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
-      # PMA_ARBITRARY: '1'
-    ports:
-      - "8083:80"
-    # volumes:
-    #   - '${DATA_DIR}/phpmyadmin/data/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php'
-    networks:
-      - traefik-proxy
-
   ###########
   # UTILITIES #
   ###########
@@ -348,40 +267,6 @@ services:
     networks:
       - traefik-proxy
     # No healthcheck: the portainer-ce image has no shell, curl or wget to run one
-
-  portainer-agent:
-    image: portainer/agent:latest
-    container_name: 'portainer-agent'
-    logging: *default-logging
-    restart: unless-stopped
-    ports:
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - traefik-proxy
-
-  # bookstack:
-  #   image: linuxserver/bookstack:latest
-  #   container_name: 'bookstack'
-  #   restart: unless-stopped
-  #   environment:
-  #     TZ: '${TZ}'
-  #     PGID: '${PGID}'
-  #     PUID: '${PUID}'
-  #     DB_HOST: '${BOOKSTACK_DB_HOST}'
-  #     DB_DATABASE: '${BOOKSTACK_DB_DATABASE}'
-  #     DB_USERNAME: '${BOOKSTACK_DB_USERNAME}'
-  #     DB_PASSWORD: '${BOOKSTACK_DB_PASSWORD}'
-  #     DB_PORT: '${BOOKSTACK_DB_PORT}'
-  #     APP_URL: 'https://bookstack.${DOMAIN}'
-  #     APP_KEY: '${BOOKSTACK_APP_KEY}'
-  #   ports:
-  #     - "8085:80"
-  #   volumes:
-  #     - '${DATA_DIR}/bookstack/config:/config'
-  #   networks:
-  #     - traefik-proxy
 
   uptime-kuma:
     image: louislam/uptime-kuma:latest
@@ -408,7 +293,6 @@ services:
       - '${DATA_DIR}/it-tools/data:/app/data'
     networks:
       - traefik-proxy
-
 
   n8n:
     image: n8nio/n8n:latest

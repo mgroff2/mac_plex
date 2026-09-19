@@ -12,12 +12,11 @@ A complete Docker-based Plex media server setup for macOS with Traefik reverse p
   - Bazarr (Subtitles)
   - Prowlarr (Indexer Management)
   - NZBGet (Downloader)
-  - Overseerr (Request Management)
-  - Ombi (Alternative Request Management)
+  - Ombi (Request Management)
   - Tautulli (Plex Analytics)
-- **AI Tools** with Ollama and Open WebUI
-- **Dashboards** with Heimdall and Organizr
-- **Database** with PostgreSQL (Sonarr/Radarr/n8n), MySQL, phpMyAdmin, and Adminer
+- **Automation** with n8n
+- **Dashboard** with Heimdall
+- **Database** with PostgreSQL (Sonarr/Radarr/n8n), MySQL (Ombi) and Adminer
 - **Monitoring** with Beszel (host, container and drive-health metrics), Dozzle (container logs) and Uptime Kuma
 - **Utilities** with Portainer and IT-Tools
 - **Automated maintenance**: nightly database dumps, container updates, and Docker cleanup (see [Automated Maintenance](#automated-maintenance))
@@ -78,24 +77,19 @@ This setup includes 20+ integrated applications running in a hybrid macOS/Docker
 
 **Download & Processing:**
 - **NZBGet** - Usenet downloader
-- **Ombi** - Primary request management platform
-- **Overseerr** - Modern request management interface (still in beta, I use ombi primarily, but have this in the works)
+- **Ombi** - Request management platform
 
-**AI & Automation:**
-- **Ollama** - Local AI language model hosting
-- **OpenWeb UI** - Web interface for AI interactions
+**Automation:**
 - **n8n** - Workflow automation (stores data in PostgreSQL)
 
 **Dashboards & Management:**
-- **Heimdall** - Primary application dashboard
-- **Organizr** - Alternative dashboard solution
+- **Heimdall** - Application dashboard
 - **Portainer** - Docker container management
 - **IT-Tools** - Collection of useful web utilities
 
 **Database & Analytics:**
-- **MySQL** - Primary database server
-- **phpMyAdmin** - Web-based database administration
-- **Adminer** - Lightweight database management
+- **MySQL** - Database server for Ombi
+- **Adminer** - Web-based administration for both MySQL and PostgreSQL
 - **Tautulli** - Plex usage analytics and monitoring
 
 **System Monitoring:**
@@ -344,10 +338,10 @@ Your services should now be available at:
 After installation, you'll need to configure each service:
 
 1. **Start with Heimdall** (`https://heimdall.yourdomain.com`) - This is your dashboard
-2. **Configure Plex** (`https://plex.yourdomain.com`) - Set up your media libraries
+2. **Configure Plex** (`http://<mac-ip>:32400/web`) - Set up your media libraries
 3. **Set up Sonarr/Radarr** for TV shows and movies
 4. **Configure Prowlarr** for indexer management
-5. **Set up Overseerr** for media requests
+5. **Set up Ombi** for media requests
 
 ## What's Included
 
@@ -363,8 +357,7 @@ Your Mac Plex Server includes these applications:
 ### 🔍 **Download Management**
 - **Prowlarr** - Indexer management (finds content)
 - **NZBGet** - Usenet downloader
-- **Overseerr** - Media request management (users can request content)
-- **Ombi** - Alternative media request platform
+- **Ombi** - Media request management (users can request content)
 
 ### 📊 **Monitoring & Analytics**
 - **Tautulli** - Plex usage analytics and statistics
@@ -372,22 +365,21 @@ Your Mac Plex Server includes these applications:
 - **Dozzle** - Container log viewer at `https://dozzle.yourdomain.com` (login required; create it in the setup wizard on first visit)
 - **Uptime Kuma** - Service uptime monitoring
 
-### 🤖 **AI & Automation**
-- **Ollama** - Local AI language models
-- **Open WebUI** - Web interface for AI chat
+### 🤖 **Automation**
 - **n8n** - Workflow automation at `https://n8n.yourdomain.com`
 
 ### 🛠️ **Management & Utilities**
 - **Heimdall** - Application dashboard (start here!)
-- **Organizr** - Alternative dashboard
 - **Portainer** - Docker container management
 - **IT-Tools** - Collection of useful web tools
 
 ### 🗄️ **Database**
 - **PostgreSQL** - Database server for Sonarr, Radarr and n8n
-- **MySQL** - Database server
-- **phpMyAdmin** - Web-based MySQL administration
-- **Adminer** - Lightweight database management
+- **MySQL** - Database server for Ombi
+- **Adminer** - Web-based administration for MySQL and PostgreSQL
+
+### 🗃️ **Archived services**
+Overseerr, phpMyAdmin, Portainer Agent, Ollama, Open WebUI, Organizr and Bookstack live in `docker/docker-compose.archive.yml`. They are not started by default; see the header of that file to bring one back. On macOS, run Ollama natively (`brew install ollama`) rather than in Docker, which cannot use the GPU.
 
 ### 🔐 **Security & Networking**
 - **Traefik** - Reverse proxy with automatic SSL certificates
@@ -404,10 +396,10 @@ Once everything is running, you can access your services at:
 
 - **Traefik Dashboard**: `https://traefik.yourdomain.com`
 - **Heimdall Dashboard**: `https://heimdall.yourdomain.com`
-- **Plex**: `https://plex.yourdomain.com` (or local access)
+- **Plex**: `https://app.plex.tv` (or `http://<mac-ip>:32400/web` on your network)
 - **Sonarr**: `https://sonarr.yourdomain.com`
 - **Radarr**: `https://radarr.yourdomain.com`
-- **Overseerr**: `https://overseerr.yourdomain.com`
+- **Ombi**: `https://ombi.yourdomain.com`
 - **Portainer**: `https://portainer.yourdomain.com`
 
 ### Managing Traefik

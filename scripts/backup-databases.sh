@@ -81,7 +81,7 @@ else
     log "postgres container not running, skipped"
 fi
 
-# --- MySQL: single dump of everything (Ombi, bookstack, synapse)
+# --- MySQL: single dump of everything (Ombi, plus the archived Bookstack's database)
 if docker ps --format '{{.Names}}' | grep -qx mysql; then
     out="$BACKUP_DIR/mysql/all-databases-$STAMP.sql.gz"
     if docker exec -e MYSQL_PWD="$(get_env MYSQL_ROOT_PASSWORD)" mysql \

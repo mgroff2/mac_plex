@@ -20,8 +20,6 @@ entryPoints:
             sans:
               - "*.${DOMAIN}"
 
-  mysql:
-    address: ":3307"
 
 providers:
   docker:

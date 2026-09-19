@@ -163,8 +163,10 @@ https_services_to_check=(
     "sonarr"
     "radarr"
     "prowlarr"
-    "overseerr"
     "tautulli"
+    "n8n"
+    "beszel"
+    "dozzle"
 )
 
 for service_name in "${https_services_to_check[@]}"; do

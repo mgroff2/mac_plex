@@ -1,0 +1,143 @@
+# Archived services - NOT started by default.
+#
+# These were removed from docker-compose.yml because they are unused, duplicate
+# another service, or were already disabled. Their data folders under DATA_DIR
+# are left in place, so bringing one back picks up where it left off.
+#
+# Docker Compose only reads docker-compose.yml (and docker-compose.override.yml)
+# automatically, so nothing here runs unless you ask for it. To restore one:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.archive.yml up -d <service>
+#
+# then move its block back into docker-compose.yml and re-add its Traefik router
+# and service in traefik/dynamic.yml.template (see git history for the originals).
+#
+# Archived 2026-09:
+#   overseerr        1 request ever; Ombi is the request app in use
+#   phpmyadmin       duplicate of Adminer, which handles MySQL and PostgreSQL
+#   portainer-agent  Portainer uses the local Docker socket directly; the agent
+#                    is only needed on other hosts
+#   ollama, open-webui  already disabled. On macOS, Ollama in Docker cannot use
+#                    the GPU - install it natively (brew install ollama) instead
+#   organizr         already disabled; Heimdall is the dashboard in use
+#   bookstack        already disabled; its MySQL database is still in place
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  overseerr:
+    image: 'lscr.io/linuxserver/overseerr:latest'
+    container_name: 'overseer'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "5055:5055"
+    volumes:
+      - '${DATA_DIR}/overseerr/config:/config'
+    networks:
+      - traefik-proxy
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    platform: linux/amd64
+    container_name: 'phpmyadmin'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      TZ: '${TZ}'
+      PMA_HOST: 'mysql'
+    ports:
+      - "8083:80"
+    networks:
+      - traefik-proxy
+
+  portainer-agent:
+    image: portainer/agent:latest
+    container_name: 'portainer-agent'
+    logging: *default-logging
+    restart: unless-stopped
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik-proxy
+
+  ollama:
+    image: 'ollama/ollama:latest'
+    container_name: 'ollama'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      TZ: '${TZ}'
+    volumes:
+      - '${DATA_DIR}/ollama/data:/root/.ollama'
+    networks:
+      - traefik-proxy
+
+  open-webui:
+    image: 'ghcr.io/open-webui/open-webui:latest'
+    container_name: 'open-webui'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      OLLAMA_BASE_URL: 'http://ollama:11434'
+      TZ: '${TZ}'
+    ports:
+      - "8082:8080"
+    volumes:
+      - '${DATA_DIR}/open-webui/data:/app/backend/data'
+    networks:
+      - traefik-proxy
+
+  organizr:
+    image: 'organizr/organizr:latest'
+    container_name: 'organizr'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      TZ: '${TZ}'
+    ports:
+      - "8888:80"
+    volumes:
+      - '${DATA_DIR}/organizr/config:/config'
+    networks:
+      - traefik-proxy
+
+  bookstack:
+    image: linuxserver/bookstack:latest
+    container_name: 'bookstack'
+    logging: *default-logging
+    restart: unless-stopped
+    environment:
+      TZ: '${TZ}'
+      PGID: '${PGID}'
+      PUID: '${PUID}'
+      DB_HOST: '${BOOKSTACK_DB_HOST:-mysql}'
+      DB_DATABASE: '${BOOKSTACK_DB_DATABASE:-bookstack}'
+      DB_USERNAME: '${BOOKSTACK_DB_USERNAME:-}'
+      DB_PASSWORD: '${BOOKSTACK_DB_PASSWORD:-}'
+      DB_PORT: '${BOOKSTACK_DB_PORT:-3306}'
+      APP_URL: 'https://bookstack.${DOMAIN}'
+      APP_KEY: '${BOOKSTACK_APP_KEY:-}'
+    ports:
+      - "8085:80"
+    volumes:
+      - '${DATA_DIR}/bookstack/config:/config'
+    networks:
+      - traefik-proxy
+
+networks:
+  traefik-proxy:
+    name: traefik-proxy
+    driver: bridge

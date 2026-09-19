@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **validate.sh** skips services that aren't deployed instead of failing them, while still failing containers that exist but aren't running; no longer suggests starting every service
 
 ### 🗑️ Removed
+- **Overseerr, phpMyAdmin and Portainer Agent**, plus the already-disabled Ollama, Open WebUI, Organizr and Bookstack blocks, moved to `docker/docker-compose.archive.yml` (not started by default). Overseerr had one request ever; phpMyAdmin duplicated Adminer; the agent is only needed on other hosts
+- **Traefik routes** for the archived services, and the TCP MySQL route on port 3307, which never worked (native Traefik cannot resolve the `mysql` container name; MySQL is still reachable directly on 3306)
 - Manually exported certificate files (`certificates/aws/`), which could not auto-renew and caused an expired certificate
 - Per-router `certResolver` settings in `dynamic.yml.template`
 - **Grafana** and **Prometheus** (commented-out services and their Traefik routes), replaced by Beszel
