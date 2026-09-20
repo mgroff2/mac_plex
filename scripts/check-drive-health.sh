@@ -9,12 +9,21 @@
 # never treated as a failure. AppleRAID membership is checked for every drive, so
 # a disk that dies or drops out is caught even without S.M.A.R.T.
 #
-# Usage: ./check-drive-health.sh [--quiet]
+# It also fails when an expected volume or RAID set is MISSING - an enclosure
+# that drops off the bus is invisible to S.M.A.R.T., so "everything I can see is
+# fine" is not the same as "everything is fine".
+#
+# Usage: ./check-drive-health.sh [--quiet] [--quick]
+#   --quick  skip S.M.A.R.T. and only check that the volumes and RAID sets are
+#            present; cheap enough to run every few minutes
 # Scheduled daily by install.sh via cron; logs to /tmp/drive-health.log
 #
 # Optional settings in docker/.env:
 #   DRIVE_TEMP_WARN          warn above this temperature in Celsius (default 55;
 #                            these Ultrastar drives are rated to 60 and sit at 42-48)
+#   EXPECTED_VOLUMES         comma-separated mount points that must be present
+#   EXPECTED_RAID_SETS       how many AppleRAID sets must be Online
+#   EXPECTED_SMART_DRIVES    how many drives must report S.M.A.R.T. (full runs)
 #   UPTIME_PUSH_DRIVE_HEALTH Uptime Kuma push URL to notify (up/down)
 
 set -uo pipefail
@@ -26,9 +35,17 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 ENV_FILE="$PROJECT_DIR/docker/.env"
 
 QUIET=false
-[ "${1:-}" = "--quiet" ] && QUIET=true
+QUICK=false
+for arg in "$@"; do
+    case "$arg" in
+        --quiet) QUIET=true ;;
+        --quick) QUICK=true ;;
+    esac
+done
 
 log() { $QUIET || echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+# Problems are always printed, even with --quiet (used by the frequent cron run)
+warn() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
 
 get_env() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- | sed -E "s/^['\"]//; s/['\"]$//"; }
 
@@ -39,7 +56,7 @@ heartbeat() {
     curl -fsS -m 10 --get --data-urlencode "status=$1" --data-urlencode "msg=$2" "$url" >/dev/null 2>&1 || true
 }
 
-command -v smartctl >/dev/null || { log "ERROR: smartctl not found - brew install smartmontools"; heartbeat down "smartctl missing"; exit 1; }
+$QUICK || command -v smartctl >/dev/null || { log "ERROR: smartctl not found - brew install smartmontools"; heartbeat down "smartctl missing"; exit 1; }
 
 TEMP_WARN=$(get_env DRIVE_TEMP_WARN); TEMP_WARN="${TEMP_WARN:-55}"
 
@@ -47,7 +64,23 @@ problems=()
 checked=0
 unsupported=0
 
-for dev in $(diskutil list physical | awk '/^\/dev\/disk/ {print $1}'); do
+# An enclosure that falls off the bus takes its volume with it, and every drive
+# in it stops being visible - so check for what SHOULD be here, not just what is.
+EXPECTED_VOLUMES=$(get_env EXPECTED_VOLUMES)
+IFS=',' read -ra want_volumes <<< "$EXPECTED_VOLUMES"
+for vol in "${want_volumes[@]}"; do
+    vol=$(echo "$vol" | sed -E 's/^ +| +$//g')
+    [ -n "$vol" ] || continue
+    if mount | grep -q " on $vol ("; then
+        log "OK   volume $vol mounted"
+    else
+        problems+=("volume $vol is NOT mounted")
+    fi
+done
+
+$QUICK && checked=1   # the S.M.A.R.T. loop is skipped, so don't fail the "no drives" check
+
+$QUICK || for dev in $(diskutil list physical | awk '/^\/dev\/disk/ {print $1}'); do
     out=$(smartctl -i -H -A "$dev" 2>&1)
     if echo "$out" | grep -q "Operation not supported by device\|Unable to detect device type"; then
         unsupported=$((unsupported + 1))
@@ -93,6 +126,19 @@ if [ -n "$raid" ]; then
     fi
     bad_sets=$(echo "$raid" | grep -E '^Status:' | grep -vc 'Online')
     [ "$bad_sets" -gt 0 ] && problems+=("$bad_sets RAID set(s) not Online")
+
+    want_sets=$(get_env EXPECTED_RAID_SETS)
+    if [ -n "$want_sets" ]; then
+        have_sets=$(echo "$raid" | grep -cE '^Name:')
+        [ "$have_sets" -lt "$want_sets" ] && problems+=("only $have_sets of $want_sets RAID sets present")
+    fi
+else
+    problems+=("no AppleRAID sets found at all")
+fi
+
+want_drives=$(get_env EXPECTED_SMART_DRIVES)
+if ! $QUICK && [ -n "$want_drives" ] && [ "$checked" -lt "$want_drives" ]; then
+    problems+=("only $checked of $want_drives drives reported S.M.A.R.T. (an enclosure may have dropped off)")
 fi
 
 if [ "$checked" -eq 0 ]; then
@@ -102,11 +148,16 @@ if [ "$checked" -eq 0 ]; then
 fi
 
 if [ ${#problems[@]} -eq 0 ]; then
-    log "All $checked drive(s) healthy"
-    heartbeat up "$checked drives healthy, $unsupported without SMART, ${members:-0} RAID members online"
+    if $QUICK; then
+        log "Volumes and RAID sets present"
+        heartbeat up "volumes mounted, ${members:-0} RAID members online"
+    else
+        log "All $checked drive(s) healthy"
+        heartbeat up "$checked drives healthy, $unsupported without SMART, ${members:-0} RAID members online"
+    fi
     exit 0
 fi
 
-for p in "${problems[@]}"; do log "WARN $p"; done
+for p in "${problems[@]}"; do warn "WARN $p"; done
 heartbeat down "$(IFS='; '; echo "${problems[*]}")"
 exit 1
