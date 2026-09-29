@@ -113,19 +113,19 @@ fi
 print_status "Setting up Docker cleanup cron jobs..."
 
 # Check if cron jobs already exist to avoid duplicates
-existing_cron=$(crontab -l 2>/dev/null | grep "docker system prune\|docker volume prune")
+existing_cron=$(crontab -l 2>/dev/null | grep "docker image prune\|docker system prune\|docker volume prune")
 
 if [ -z "$existing_cron" ]; then
     # Get current crontab and add new jobs
     (crontab -l 2>/dev/null; echo "# Docker cleanup jobs - added by Mac Plex installer") | crontab -
-    (crontab -l 2>/dev/null; echo "# Run every day at 3:00 AM - Docker system prune") | crontab -
-    (crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/docker system prune -af > /tmp/docker-prune.log 2>&1") | crontab -
+    (crontab -l 2>/dev/null; echo "# Run every day at 3:00 AM - remove unused images (NOT stopped containers)") | crontab -
+    (crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/docker image prune -af > /tmp/docker-prune.log 2>&1") | crontab -
     (crontab -l 2>/dev/null; echo "# Run every day at 3:05 AM - Docker volume prune") | crontab -
     (crontab -l 2>/dev/null; echo "5 3 * * * /usr/local/bin/docker volume prune -f >> /tmp/docker-prune.log 2>&1") | crontab -
     (crontab -l 2>/dev/null; echo "") | crontab -  # Add blank line for readability
     
     print_success "Docker cleanup cron jobs added successfully"
-    print_status "Scheduled: Daily at 3:00 AM (system prune) and 3:05 AM (volume prune)"
+    print_status "Scheduled: Daily at 3:00 AM (image prune) and 3:05 AM (volume prune)"
 else
     print_success "Docker cleanup cron jobs already exist, skipping"
 fi

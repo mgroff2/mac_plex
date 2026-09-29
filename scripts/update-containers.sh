@@ -81,11 +81,42 @@ fi
 
 # --no-deps: never start or recreate dependencies (e.g. excluded databases).
 # Compose only recreates containers whose image or configuration changed.
-if docker compose up -d --no-deps "${services[@]}"; then
-    log "Update complete"
-    heartbeat up "${#services[@]} services checked"
-else
-    log "ERROR: failed to recreate one or more services"
-    heartbeat down "failed to recreate one or more services"
-    exit 1
+docker compose up -d --no-deps "${services[@]}"
+rc=$?
+
+# Docker sometimes fails to stop a container ("did not receive an exit event"),
+# which aborts compose and leaves services down. Recover rather than alerting and
+# walking away: a service left stopped here stays stopped until someone notices,
+# and the nightly prune then deletes the container and its image.
+missing=()
+for service in "${services[@]}"; do
+    docker compose ps --services --status running | grep -qx "$service" || missing+=("$service")
+done
+
+if [ ${#missing[@]} -gt 0 ]; then
+    log "WARNING: not running after update: ${missing[*]} - retrying"
+    for service in "${missing[@]}"; do
+        # Force-remove a stuck container, then let compose recreate it
+        cid=$(docker compose ps -aq "$service" 2>/dev/null)
+        [ -n "$cid" ] && docker rm -f "$cid" >/dev/null 2>&1
+        docker compose up -d --no-deps "$service" >/dev/null 2>&1
+    done
+    still_down=()
+    for service in "${missing[@]}"; do
+        docker compose ps --services --status running | grep -qx "$service" || still_down+=("$service")
+    done
+    if [ ${#still_down[@]} -gt 0 ]; then
+        log "ERROR: still not running after retry: ${still_down[*]}"
+        heartbeat down "still down after retry: ${still_down[*]}"
+        exit 1
+    fi
+    log "Recovered after retry: ${missing[*]}"
+    heartbeat up "${#services[@]} services checked, recovered ${missing[*]}"
+    exit 0
 fi
+
+if [ $rc -ne 0 ]; then
+    log "WARNING: compose reported an error but every service is running"
+fi
+log "Update complete"
+heartbeat up "${#services[@]} services checked"
