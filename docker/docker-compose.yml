@@ -292,7 +292,9 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - '${DATA_DIR}/uptime-kuma:/app/data'
+      # On the internal SSD, not a media array: SQLite's locking is unreliable
+      # over Docker Desktop's file sharing and corrupted this database once
+      - '${DB_DATA_DIR:-${DATA_DIR}}/uptime-kuma:/app/data'
     networks:
       - traefik-proxy
 

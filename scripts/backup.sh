@@ -10,7 +10,7 @@
 # because dumps are consistent snapshots while a copied live database file is not.
 #
 # Usage: ./backup.sh [--dry-run] [--only name1,name2]
-#   names: docker-config, arr-config, db-dumps, plex, traefik, secrets
+#   names: docker-config, arr-config, db-dumps, uptime-kuma, plex, traefik, secrets
 #
 # Deliberately excluded: media files, NZBGet downloads, Ollama models, *arr
 # MediaCover artwork, logs and caches - all large and re-downloadable or
@@ -64,6 +64,7 @@ heartbeat() {
 DATA_DIR=$(get_env DATA_DIR)
 ARR_DATA_DIR=$(get_env ARR_DATA_DIR); ARR_DATA_DIR="${ARR_DATA_DIR:-$DATA_DIR}"
 DB_BACKUP_DIR=$(get_env DB_BACKUP_DIR); DB_BACKUP_DIR="${DB_BACKUP_DIR:-$DATA_DIR/db-backups}"
+DB_DATA_DIR=$(get_env DB_DATA_DIR); DB_DATA_DIR="${DB_DATA_DIR:-$DATA_DIR}"
 BACKUP_DIR="${BACKUP_DIR:-$(get_env BACKUP_DIR)}"   # env var wins, for testing
 PLEX_APP_DIR="$HOME/Library/Application Support/Plex Media Server"
 
@@ -83,6 +84,9 @@ JOBS=(
     "docker-config|$DATA_DIR|docker-data|nzbget/downloads,nzbget/intermediate,db-backups,ollama,MediaCover,logs,*.log,Cache"
     "arr-config|$ARR_DATA_DIR|arr-data|MediaCover,logs,*.log,Cache"
     "db-dumps|$DB_BACKUP_DIR|db-dumps|"
+    # Uptime Kuma keeps its SQLite database on the internal SSD (see compose),
+    # so DATA_DIR above does not cover it
+    "uptime-kuma|$DB_DATA_DIR/uptime-kuma|uptime-kuma|screenshots"
     "plex|$PLEX_APP_DIR|plex-app-support|Cache,Metadata,Media,Updates,Codecs,Crash Reports,Diagnostics,Logs"
     "traefik|$PROJECT_DIR/traefik|traefik|"
     "secrets|$ENV_FILE|secrets|"
