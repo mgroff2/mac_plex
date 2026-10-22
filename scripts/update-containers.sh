@@ -42,7 +42,11 @@ heartbeat() {
 cd "$COMPOSE_DIR" || { log "ERROR: compose directory not found: $COMPOSE_DIR"; exit 1; }
 
 if ! docker info >/dev/null 2>&1; then
+    # Docker Desktop updates itself and does not always come back. Say so loudly:
+    # a silent skip means nothing is updated and nothing is monitored until someone
+    # notices by hand.
     log "ERROR: Docker is not running, skipping update"
+    heartbeat down "Docker is not running - nothing was updated"
     exit 1
 fi
 

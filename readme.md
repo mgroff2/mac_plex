@@ -555,7 +555,7 @@ Manage the agent with `brew services list` / `brew services restart beszel-agent
 | Time | Job | What it does | Log |
 |------|-----|--------------|-----|
 | 2:00 AM | `scripts/backup-databases.sh` | Dumps every PostgreSQL database (plus roles/globals) and all MySQL databases to `DB_BACKUP_DIR`, pruning dumps older than `DB_BACKUP_KEEP_DAYS` | `/tmp/db-backup.log` |
-| 2:30 AM | `scripts/update-containers.sh` | Pulls newer images and recreates **only services that are already running**, skipping `AUTO_UPDATE_EXCLUDE`. If a service is not running afterwards (Docker sometimes fails to stop a container), it force-removes it, retries once, and only then alerts | `/tmp/docker-update.log` |
+| 2:30 AM | `scripts/update-containers.sh` | Pulls newer images and recreates **only services that are already running**, skipping `AUTO_UPDATE_EXCLUDE`. If a service is not running afterwards (Docker sometimes fails to stop a container), it force-removes it, retries once, and only then alerts. **Only running services are updated** - a container that is stopped at 2:30 AM is skipped silently, so check the log after any Docker outage | `/tmp/docker-update.log` |
 | 3:00 AM | `docker image prune -af` | Removes unused images. **Not** `system prune`: that also deletes stopped containers, so a service that failed to restart could not simply be started again, and its logs were gone | `/tmp/docker-prune.log` |
 | 3:05 AM | `docker volume prune -f` | Removes unused Docker volumes | `/tmp/docker-prune.log` |
 | 4:00 AM | `scripts/backup.sh` | Mirrors app config, Plex's database, Traefik certificates, `.env` and the dumps to `BACKUP_DIR` - runs last so it captures that night's dumps. Logs an error and does nothing until `BACKUP_DIR` is set | `/tmp/plex_backup.log` |
