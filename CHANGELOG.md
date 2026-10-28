@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Heartbeat pings** from `backup-databases.sh`, `update-containers.sh` and `backup.sh` to Uptime Kuma push monitors (`UPTIME_PUSH_*` in `.env`, optional), so a nightly job that stops running is noticed
 
 ### 🔧 Changed
+- **Ombi** waits for MySQL to be healthy before starting. Starting first leaves its `index.html` empty (it rewrites that file at boot), so it serves a blank page while its API still returns 200 - invisible to uptime monitoring
 - **update-containers.sh** reports to Uptime Kuma when Docker itself is not running, instead of exiting quietly. Docker Desktop updated itself overnight and did not come back, so the 2:30 AM job skipped every container with no alert
 - **Uptime Kuma's database** moved to the internal SSD (`DB_DATA_DIR`) and is included in `backup.sh`. SQLite on a bind-mounted media array corrupted it (`database disk image is malformed`), which made every monitor flap; the database was rebuilt with `.recover`
 - **Nightly cleanup** uses `docker image prune -af` instead of `docker system prune -af`, which also deleted stopped containers - a failed recreate then left no container to restart and no logs to read

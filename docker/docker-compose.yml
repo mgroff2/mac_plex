@@ -83,6 +83,12 @@ services:
     container_name: 'ombi'
     logging: *default-logging
     restart: unless-stopped
+    depends_on:
+      # Ombi rewrites its index.html at startup. Starting before MySQL is ready
+      # leaves that file empty, so it serves a blank page while its API still
+      # answers 200 - which looks healthy to monitoring.
+      mysql:
+        condition: service_healthy
     environment:
       PGID: '${PGID}'
       PUID: '${PUID}'
